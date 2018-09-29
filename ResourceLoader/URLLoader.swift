@@ -48,7 +48,7 @@ extension ResourceQuery: Hashable {
 /// For the representation of JSON resources
 /// the types `JSONObject` and `JSONArray` are defined having a `value` properties
 /// of type `[String : Any] and [Any], respectively.
-class URLLoader<ResourceType: CreatableFromData> {
+public class URLLoader<ResourceType: CreatableFromData> {
 
     /// The type of the closure that is called to process the loaded resource.
     /// - Parameters:
@@ -56,7 +56,7 @@ class URLLoader<ResourceType: CreatableFromData> {
     ///     - query: The identifier of the canceled request,
     ///                  returned from the corresponding call
     ///                  of the `requestResource` method.
-    typealias AcceptorType = (_ result: ResourceType?, _ query: ResourceQuery) -> ()
+    public typealias AcceptorType = (_ result: ResourceType?, _ userData: Any?) -> ()
 
     /// Type that represents a reference to the received query.
     private typealias QueryType = (id: UInt, acceptor: AcceptorType)
@@ -69,9 +69,13 @@ class URLLoader<ResourceType: CreatableFromData> {
     private let poolQueue = DispatchQueue(label: "resourceloader.request", qos: .utility)
 
     /// The dispatch queue on which callback acceptors for loaded resources will be executed.
-    private let acceptorQueue = DispatchQueue(label: "resourceloader.acceptor", qos: .utility)
+    private let callbackQueue: DispatchQueue
 
     private var queryCounter = UInt(0)
+
+    public init (callbackQueue: DispatchQueue = DispatchQueue.main) {
+        self.callbackQueue = callbackQueue
+    }
 
     /// Initiate an asynchronous loading of a resource.
     /// - Parameters:
@@ -81,7 +85,7 @@ class URLLoader<ResourceType: CreatableFromData> {
     /// - Returns: Returns an object that uniquely identifies created loading query
     ///            in the scope of a current instance of the URLLoader.
     @discardableResult
-    func requestResource(from url: URL, for acceptor: @escaping AcceptorType) -> ResourceQuery {
+    public func requestResource(from url: URL, userData: Any? = nil, for acceptor: @escaping AcceptorType) -> ResourceQuery {
         var queryId = queryCounter
         poolQueue.sync {
             self.queryCounter = self.queryCounter &+ 1
@@ -95,9 +99,9 @@ class URLLoader<ResourceType: CreatableFromData> {
                     self.poolQueue.async {
                         if let (task, queries) = self.queryPool.removeValue(forKey: url) {
                             assert(task.state == .completed)
-                            self.acceptorQueue.async {
+                            self.callbackQueue.async {
                                 queries.forEach {
-                                    $0.acceptor(result, ResourceQuery(id: $0.id, url: url))
+                                    $0.acceptor(result, userData)
                                 }
                             }
                         }
@@ -116,7 +120,7 @@ class URLLoader<ResourceType: CreatableFromData> {
     /// - Parameter query: The identifier of the canceled request,
     ///                    returned from the corresponding call
     ///                    of the `requestResource` method.
-    func cancelRequest(_ query: ResourceQuery) {
+    public func cancelRequest(_ query: ResourceQuery) {
         poolQueue.sync {
             guard let (task, queries) = self.queryPool.removeValue(forKey: query.url) else {return}
             let updatedQueries = queries.filter {$0.id != query.id}

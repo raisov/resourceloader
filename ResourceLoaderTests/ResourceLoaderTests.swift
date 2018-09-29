@@ -34,7 +34,7 @@ class ResourceLoaderTests: XCTestCase {
     }
 
     func testJPG() {
-        let loader = URLLoader<UIImage>()
+        let loader = URLLoader<UIImage>(callbackQueue: DispatchQueue.global())
         let bundle = Bundle(for: type(of: self))
 
         let name = "orange"
@@ -47,12 +47,12 @@ class ResourceLoaderTests: XCTestCase {
         let imageData = archive(image)
 
         let completion = DispatchSemaphore(value: 0)
-        loader.requestResource(from: url) {(resource: UIImage?, query: ResourceQuery) -> () in
-            XCTAssertEqual(url, query.url)
+        loader.requestResource(from: url, userData: imageData) {(resource: UIImage?, userData: Any?) -> () in
+            XCTAssertNotNil(userData as? Data)
             XCTAssertNotNil(resource, "can't load resource from " + url.relativeString)
-            if let resource = resource {
+            if let resource = resource, let userData = userData as? Data {
                 XCTAssertEqual(resource.size, image.size)
-                XCTAssertEqual(archive(resource), imageData)
+                XCTAssertEqual(archive(resource), userData)
             }
             completion.signal()
         }
@@ -60,7 +60,7 @@ class ResourceLoaderTests: XCTestCase {
     }
 
     func testPNG() {
-        let loader = URLLoader<UIImage>()
+        let loader = URLLoader<UIImage>(callbackQueue: DispatchQueue.global())
         let bundle = Bundle(for: type(of: self))
 
         let name = "cherries"
@@ -73,8 +73,7 @@ class ResourceLoaderTests: XCTestCase {
         let imageData = archive(image)
 
         let completion = DispatchSemaphore(value: 0)
-        loader.requestResource(from: url) {(resource: UIImage?, query: ResourceQuery) -> () in
-            XCTAssertEqual(url, query.url)
+        loader.requestResource(from: url) {(resource: UIImage?, _) -> () in
             XCTAssertNotNil(resource, "can't load resource from " + url.relativeString)
             if let resource = resource {
                 XCTAssertEqual(resource.size, image.size)
@@ -110,7 +109,7 @@ class ResourceLoaderTests: XCTestCase {
             }
         }
 
-        let loader = URLLoader<XMLParser>()
+        let loader = URLLoader<XMLParser>(callbackQueue: DispatchQueue.global())
         let bundle = Bundle(for: type(of: self))
 
         let name = "Info"
@@ -124,8 +123,7 @@ class ResourceLoaderTests: XCTestCase {
         let xmlContent = parserDelegate.value
 
         let completion = DispatchSemaphore(value: 0)
-        loader.requestResource(from: url) {(resource: XMLParser?, query: ResourceQuery) -> () in
-            XCTAssertEqual(url, query.url)
+        loader.requestResource(from: url) {(resource: XMLParser?, _) -> () in
             XCTAssertNotNil(resource, "can't load resource from " + url.relativeString)
             if let resource = resource {
                 let parserDelegate = TestXMLParser()
@@ -139,7 +137,7 @@ class ResourceLoaderTests: XCTestCase {
     }
 
     func testPDF() {
-        let loader = URLLoader<PDFDocument>()
+        let loader = URLLoader<PDFDocument>(callbackQueue: DispatchQueue.global())
         let bundle = Bundle(for: type(of: self))
 
         let name = "cv"
@@ -148,8 +146,7 @@ class ResourceLoaderTests: XCTestCase {
         let url = bundle.url(forResource: name, withExtension: ext)!
 
         let completion = DispatchSemaphore(value: 0)
-        loader.requestResource(from: url) {(resource: PDFDocument?, query: ResourceQuery) -> () in
-            XCTAssertEqual(url, query.url)
+        loader.requestResource(from: url) {(resource: PDFDocument?, _) -> () in
             XCTAssertNotNil(resource, "can't load resource from " + url.relativeString)
             if let resource = resource {
                 let selections = resource.findString("Swift")
@@ -161,7 +158,7 @@ class ResourceLoaderTests: XCTestCase {
     }
 
     func testJSONObject() {
-        let loader = URLLoader<JSONObject>()
+        let loader = URLLoader<JSONObject>(callbackQueue: DispatchQueue.global())
         let bundle = Bundle(for: type(of: self))
 
         let name = "JSONObject"
@@ -170,8 +167,7 @@ class ResourceLoaderTests: XCTestCase {
         let url = bundle.url(forResource: name, withExtension: ext)!
 
         let completion = DispatchSemaphore(value: 0)
-        loader.requestResource(from: url) {(resource: JSONObject?, query: ResourceQuery) -> () in
-            XCTAssertEqual(url, query.url)
+        loader.requestResource(from: url) {(resource: JSONObject?, _) -> () in
             XCTAssertNotNil(resource, "can't load resource from " + url.relativeString)
             if let resource = resource {
                 XCTAssertNotNil(resource.value["number"] as? Int)
@@ -185,7 +181,7 @@ class ResourceLoaderTests: XCTestCase {
     }
 
     func testJSONArray() {
-        let loader = URLLoader<JSONArray>()
+        let loader = URLLoader<JSONArray>(callbackQueue: DispatchQueue.global())
         let bundle = Bundle(for: type(of: self))
 
         let name = "JSONArray"
@@ -194,8 +190,7 @@ class ResourceLoaderTests: XCTestCase {
         let url = bundle.url(forResource: name, withExtension: ext)!
 
         let completion = DispatchSemaphore(value: 0)
-        loader.requestResource(from: url) {(resource: JSONArray?, query: ResourceQuery) -> () in
-            XCTAssertEqual(url, query.url)
+        loader.requestResource(from: url) {(resource: JSONArray?, _) -> () in
             XCTAssertNotNil(resource, "can't load resource from " + url.relativeString)
             if let resource = resource {
                 XCTAssertEqual(resource.value.count, 12)
