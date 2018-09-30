@@ -2,6 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:LoaderDemo/LoaderDemo.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:ResourceLoader.xcodeproj">
    </FileRef>
 </Workspace>
