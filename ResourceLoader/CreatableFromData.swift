@@ -24,7 +24,7 @@ public protocol CreatableFromData {
     init?(data: Data)
 }
 
-struct JSONObject: CreatableFromData {
+public struct JSONObject: CreatableFromData {
     public let value: [String: Any]
     public init?(data: Data) {
         guard let json = try? JSONSerialization.jsonObject(with: data, options: []) else {
@@ -37,7 +37,7 @@ struct JSONObject: CreatableFromData {
     }
 }
 
-struct JSONArray: CreatableFromData {
+public struct JSONArray: CreatableFromData {
     public let value: [Any]
     public init?(data: Data) {
         guard let json = try? JSONSerialization.jsonObject(with: data, options: []) else {
