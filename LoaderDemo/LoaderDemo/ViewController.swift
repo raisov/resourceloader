@@ -44,72 +44,58 @@ class ViewController: UICollectionViewController {
         model.delegate = self
      }
 
-    private func calculateLayout() {
+    func makeLayout(for size: CGSize) {
+
+        let maxItemSize = CGSize(width: 480, height: 320)
+
+        func calc(available: CGFloat, maxSize: CGFloat, margins: CGFloat, spacing: CGFloat) -> (size: CGFloat, margin: CGFloat) {
+            let n = CGFloat.maximum(2, (available - margins + spacing)/(maxSize + spacing)).rounded(.towardZero)
+            let totalSpacing = (n - 1) * spacing
+            let itemSize = ((available - margins - totalSpacing) / n).rounded(.towardZero)
+            let required = n * itemSize + totalSpacing
+            let actualMargin = (available - required) / 2
+            return (size: itemSize, margin: actualMargin)
+        }
+
         guard let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout else {
             return
         }
-        let spacing = CGFloat(20)
-        let margins = CGFloat(60)
-        let maxCellSize = CGFloat(240)
+        let inset = layout.sectionInset
 
-        layout.headerReferenceSize = CGSize(width: 0, height: 0)
-        let bounds = collectionView.bounds
-        layout.minimumInteritemSpacing = spacing
-        layout.minimumLineSpacing = spacing
-        let shortSide = CGFloat.minimum(bounds.width, bounds.height) - margins
-        let itemsOnShortSide = CGFloat(2.0)
-//        let itemsOnShortSide = CGFloat.maximum((shortSide/maxCellSize).rounded(.towardZero), 2.0)
-        let shortSideTotalSpacing = spacing * (itemsOnShortSide - 1)
-        let cellSize = ((shortSide - shortSideTotalSpacing) / itemsOnShortSide).rounded(.towardZero)
-        layout.itemSize = CGSize(width: cellSize, height: cellSize)
         switch layout.scrollDirection {
         case .vertical:
-            let itemsOnWidth = ((bounds.width + spacing - margins ) / (cellSize + spacing)).rounded(.towardZero)
-            let totalWidthSpacing = spacing * (itemsOnWidth - 1)
-            let widthInset = (bounds.width - cellSize * itemsOnWidth - totalWidthSpacing) / 2.0
-            layout.sectionInset = UIEdgeInsets(top: margins / 2, left: widthInset,
-                                               bottom: margins / 2, right: widthInset)
+            let (itemWidth, horizontalMargin) = calc( available: size.width,
+                                        maxSize: maxItemSize.width,
+                                        margins: inset.top + inset.bottom,
+                                        spacing: layout.minimumInteritemSpacing)
+            let itemHeight = ((maxItemSize.height * itemWidth) / maxItemSize.width).rounded(.towardZero)
+            layout.itemSize = CGSize(width: itemWidth, height: itemHeight)
+            layout.sectionInset = UIEdgeInsets(top: inset.top, left: horizontalMargin,
+                                               bottom: inset.bottom, right: horizontalMargin)
         case .horizontal:
-            let itemsOnHeight = ((bounds.height + spacing - margins) / (cellSize + spacing)).rounded(.towardZero)
-            let totalHeightSpacing = spacing * (itemsOnHeight - 1.0)
-            let heightInset = (bounds.height - cellSize * itemsOnHeight - totalHeightSpacing) / 2.0
-            layout.sectionInset = UIEdgeInsets(top: heightInset, left: margins / 2,
-                                               bottom: heightInset, right: margins / 2)
+            let (itemHeight, verticalMargin) = calc( available: size.height,
+                                        maxSize: maxItemSize.height,
+                                        margins: inset.left + inset.right,
+                                        spacing: layout.minimumLineSpacing)
+            let itemWidth = ((maxItemSize.width * itemHeight) / maxItemSize.height).rounded(.towardZero)
+            layout.itemSize = CGSize(width: itemWidth, height: itemHeight)
+            layout.sectionInset = UIEdgeInsets(top: inset.top, left: verticalMargin,
+                                               bottom: inset.bottom, right: verticalMargin)
         }
+
+        layout.headerReferenceSize = CGSize(width: 0, height: 0)
         collectionView.collectionViewLayout = layout
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        calculateLayout()
+        let bounds = collectionView.bounds
+        makeLayout(for: CGSize(width: bounds.width, height: bounds.height))
     }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
-        guard let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout else {
-            return
-        }
-        let itemSize = layout.itemSize
-        let cellSize = itemSize.width
-        let spacing = layout.minimumInteritemSpacing
-        let inset = layout.sectionInset
-        switch layout.scrollDirection {
-        case .vertical:
-            let margins = inset.top + inset.bottom
-            let itemsOnWidth = ((size.width + spacing - margins ) / (cellSize + spacing)).rounded(.towardZero)
-            let totalWidthSpacing = spacing * (itemsOnWidth - 1)
-            let widthInset = (size.width - cellSize * itemsOnWidth - totalWidthSpacing) / 2.0
-            layout.sectionInset = UIEdgeInsets(top: inset.top, left: widthInset,
-                                               bottom: inset.bottom, right: widthInset)
-        case .horizontal:
-            let margins = inset.left + inset.right
-            let itemsOnHeight = ((size.height + spacing - margins) / (cellSize + spacing)).rounded(.towardZero)
-            let totalHeightSpacing = spacing * (itemsOnHeight - 1.0)
-            let heightInset = (size.height - cellSize * itemsOnHeight - totalHeightSpacing) / 2.0
-            layout.sectionInset = UIEdgeInsets(top: heightInset, left: inset.left,
-                                               bottom: heightInset, right: inset.right)
-        }
-        collectionView.collectionViewLayout = layout
+        makeLayout(for: size)
     }
 
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
