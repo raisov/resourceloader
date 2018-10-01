@@ -85,7 +85,7 @@ public class URLLoader<ResourceType: CreatableFromData> {
     ///     - url: The URL from which resource should be loaded.
     ///     - userData: Arbitrary user data that will be passed to acceptor callback
     ///                 when request will be completed.
-    ///     - acceptor: The completion handler closure which called
+    ///     - acceptor: The completion handler closure that called
     ///                 when a load finishes successfully or with an error.
     /// - Returns: an object that uniquely identifies created request
     ///            in the scope of a current instance of the URLLoader.
