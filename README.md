@@ -20,7 +20,7 @@ The purpose of the library is to abstract the downloading (images, pdf, zip, et
 
 The library is designed in accordance with these requirements. It contains some unit tests for loading JPEG, PNG, XML, PDF and JSON resources. 
 
-In addition, TestLoader iOS application was developed to demonstrate the use of the library.
+In addition, LoaderDemo iOS application was developed to demonstrate the use of the library.
 
 
 ## Usage
@@ -80,15 +80,15 @@ imageLoader.cancelRequest(requestId)
 After you clone or download from [GitHub](https://github.com/raisov/resourceloader) to your directory, ResourceLoader.xcworkspace  will be found there. This workspace contains two Xcode projects:
 
 * ResourceLoader - to build ResourceLoader.framework and run unit tests;
-* TestLoader - to build and run an universal iOS application that demonstrates library usage.
+* LoaderDemo - to build and run an universal iOS application that demonstrates library usage.
 
 The simplest way to integrate __ResourceLoader__ in your project is to include URLLoader.swift and CreatableFromData.swift files in a project source tree.
 Another way is include whole ResourceLoader.xcodeproj in your workspace. Then open _Project Inspector_ and in _Build Phases_ tab add ResourceLoader.framework to _Link Binary With Libraries_ section. Don't forget `import ResourceLoader` and your are ready to use it.
 
 ## Demo Application
 
-__TestLoader__ is an application thet load and display randomly selected set of images  listed in [JSON](http://pastebin.com/raw/wgkJgazE). When a user press _Refresh_ button than next image set loaded.
+__LoaderDemo__ is an application thet load and display randomly selected set of images  listed in [JSON](http://pastebin.com/raw/wgkJgazE). When a user press _Refresh_ button than next image set loaded.
 Application may run on iPhone or iPad with iOS version 11.0 and above.
 `URLLoader` object is used in this application to load JSON with list of images URL and to asynchronously load this images, naturaly.
-![Screen shot](ScreenShot.png)
+![Screen shot](./LoaderDemo/ScreenShot.png)
 
