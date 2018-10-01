@@ -34,7 +34,7 @@ In addition, LoaderDemo iOS application was developed to demonstrate the use of 
 ```swift
 import ResourceLoader
 ```
-Loadable resources should have a type  conforming to the protocol `CreatableFromData`. To ensure conformancy, a type must have an `init?(data: Data)` constructor.
+Loadable resources should have a type  conforming to the custom protocol [`CreatableFromData`](./ResourceLoader/CreatableFromData.swift). To ensure conformancy, a type must have an `init?(data: Data)` constructor.
 
 Conformance can easily be provided for types such as UIImage (NSImage), XMLParser and PDFDocument by extensions like:
  ```swift
