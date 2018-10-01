@@ -75,6 +75,33 @@ let requestId = imageLoader.requestResource(url: url, userData: imageView) {
 imageLoader.cancelRequest(requestId)
 ```
 
+In the following example the list of user names loaded from JSON like this:
+
+```json
+[
+   {"user" : "jsmith", "firstname" : "John", "lastname" : "Smith"},
+   {"user" : "ivanov", "firstname" : "Ivan", "lastname" : "Ivanov"}
+]    
+```
+
+```swift
+import Foundation
+import ResourceLoader
+
+let loader = URLLoader<JSONArray>()
+let jsonURL = URL( /* ... */ )
+var usernames = [String]()
+loader.requestResource(url: jsonURL) {json, _, _ in
+    guard let json = json else {/*error*/ return}
+    usernames = json.value.compactMap {
+        $0 as? [String : Any]
+    }.compactMap {
+        $0["user"] as? String]
+    }
+}
+// usernames == ["jmith", "ivanov"]
+```
+
 ## Integration
 
 After you clone or download from [GitHub](https://github.com/raisov/resourceloader) to your directory, ResourceLoader.xcworkspace  will be found there. This workspace contains two Xcode projects:
@@ -90,5 +117,6 @@ Another way is include whole ResourceLoader.xcodeproj in your workspace. Then op
 __LoaderDemo__ is an application thet load and display randomly selected set of images  listed in [JSON](http://pastebin.com/raw/wgkJgazE). When a user press _Refresh_ button than next image set loaded.
 Application may run on iPhone or iPad with iOS version 11.0 and above.
 `URLLoader` object is used in this application to load JSON with list of images URL and to asynchronously load this images, naturaly.
+
 ![Screen shot](./LoaderDemo/ScreenShot.png)
 
