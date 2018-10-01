@@ -4,7 +4,7 @@ __ResourceLoader__ is a Swift library intended to asynchronously load resources 
 
 ## Overview
 
-This library was designed to complet practical challenge from potential  employer. Below is a brief description of the task.
+This library was designed to complete practical challenge from potential  employer. Below is the brief description of the task.
 
 ### Task
 
