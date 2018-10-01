@@ -1,7 +1,6 @@
 #  ResourceLoader
 
-__ResourceLoader__ is a Swift library intended to asynchronously load resources identified by URL. It was designed to perform a practical challenge from the Mindvalley.
-
+__ResourceLoader__ is a Swift library intended to asynchronously load resources identified by URL.
 ## Overview
 
 This library was designed to completing the practical challenge from potential  employer. Below is a brief description of the task.
