@@ -17,6 +17,7 @@
 		E0481F9E215E634100A7653A /* cv.pdf in Resources */ = {isa = PBXBuildFile; fileRef = E0481F99215E634100A7653A /* cv.pdf */; };
 		E0481F9F215E634100A7653A /* JSONObject.json in Resources */ = {isa = PBXBuildFile; fileRef = E0481F9A215E634100A7653A /* JSONObject.json */; };
 		E05F29B9215FC63A00CC47FF /* ResourceLoader.xcodeproj in Frameworks */ = {isa = PBXBuildFile; fileRef = E05F29B6215FC62100CC47FF /* ResourceLoader.xcodeproj */; };
+		E05F29CF2162A4D900CC47FF /* ScreenShot.png in Resources */ = {isa = PBXBuildFile; fileRef = E05F29CE2162A4D900CC47FF /* ScreenShot.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +45,7 @@
 		E0481F99215E634100A7653A /* cv.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = cv.pdf; sourceTree = "<group>"; };
 		E0481F9A215E634100A7653A /* JSONObject.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = JSONObject.json; sourceTree = "<group>"; };
 		E05F29B6215FC62100CC47FF /* ResourceLoader.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = ResourceLoader.xcodeproj; sourceTree = "<group>"; };
+		E05F29CE2162A4D900CC47FF /* ScreenShot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ScreenShot.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,6 +72,7 @@
 			isa = PBXGroup;
 			children = (
 				E03CD57A215F9DBC00951BF7 /* README.md */,
+				E05F29CE2162A4D900CC47FF /* ScreenShot.png */,
 				E0481F7A215E602E00A7653A /* ResourceLoader */,
 				E0481F85215E602F00A7653A /* ResourceLoaderTests */,
 				E0481F79215E602E00A7653A /* Products */,
@@ -221,6 +224,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E05F29CF2162A4D900CC47FF /* ScreenShot.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

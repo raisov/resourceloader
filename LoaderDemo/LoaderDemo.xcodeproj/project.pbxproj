@@ -43,6 +43,7 @@
 		E05F29BF215FEEAE00CC47FF /* ImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageLoader.swift; sourceTree = "<group>"; };
 		E05F29CA2160D5D500CC47FF /* ResourceLoader.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ResourceLoader.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E05F29CC216193BD00CC47FF /* troubles.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = troubles.png; sourceTree = "<group>"; };
+		E05F29D02162A4FB00CC47FF /* ScreenShot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ScreenShot.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,6 +61,7 @@
 		E05F2993215FC34100CC47FF = {
 			isa = PBXGroup;
 			children = (
+				E05F29D02162A4FB00CC47FF /* ScreenShot.png */,
 				E05F299E215FC34100CC47FF /* LoaderDemo */,
 				E05F299D215FC34100CC47FF /* Products */,
 				E05F29C92160D5D500CC47FF /* Frameworks */,
