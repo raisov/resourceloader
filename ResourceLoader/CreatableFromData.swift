@@ -8,18 +8,17 @@
 
 import Foundation
 
-/// The resources loadable by the `ULLoader` should be represented by the type
-/// conforming to the protocol `CreatableFromData`.
-/// To ensure conformancy, a type must have an `init?(data: Data)` constructor.
+/// Resources loadable by the `ULLoader` should be represented by the type
+/// conforming to `CreatableFromData` protocol.
+/// To ensure conformance the type must have `init?(data: Data)` constructor.
 /// Conformance can easily be provided for types
-/// such as {UIImage, XMLParser and PDFDocument by extensions like:
+/// such as {UIImage, XMLParser and PDFDocument by extensions as follows:
 /// ```
 ///    extension UIImage: CreatableFromData {}
 /// ```
-/// For the representation of JSON resources
-/// the types `JSONObject` and `JSONArray` are defined below
-/// having a `value` properties of type
-/// `[String : Any] and [Any], respectively.
+/// To represent JSON resources the types `JSONObject` and `JSONArray`
+/// are defined below having a `value` property of type
+/// `[String : Any] and [Any] respectively.
 public protocol CreatableFromData {
     init?(data: Data)
 }

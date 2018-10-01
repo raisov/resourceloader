@@ -8,16 +8,16 @@
 
 import Foundation
 
-/// The type of the identifier for the specific request to load.
+/// Descriptor type for the specific request to load.
 public struct RequestDescriptor {
     public let url: URL
     fileprivate let id: UInt
 
-    /// Creates a resource query identifier.
+    /// Create resource request descriptor.
     /// - Parameters:
-    ///     - id: The number that uniquely identifies a resource query
-    ///           in the scope of a specific instance of the URLLoader.
-    ///     - url: The URL to which the resource query relates
+    ///     - id: number that uniquely identifying resource request.
+    ///           in scope of the URLLoader instance.
+    ///     - url: The URL related to the resource request.
     init(id: UInt, url: URL) {
         self.id = id
         self.url = url
@@ -35,60 +35,59 @@ extension RequestDescriptor: Hashable {
     }
 }
 
-/// An `URLLoader` is an object that is able to
-/// asynchronously load resources identified by URL.
-/// The result of the request is representing by the type
-/// conforming to the protocol `CreatableFromData`.
-/// To ensure conformancy, a type must have an `init?(data: Data)` constructor.
+/// `URLLoader` is an object asynchronously load resources identified by URL.
+/// The result of the request is represented by the type
+/// conforming to `CreatableFromData` protocol.
+/// To ensure conformance the type must have an `init?(data: Data)` constructor.
 /// Conformance can easily be provided for types
-/// such as UIImage, XMLParser and PDFDocument by extensions like:
+/// such as UIImage, XMLParser and PDFDocument by extensions as follows:
 /// ```
 ///    extension UIImage: CreatableFromData {}
 /// ```
-/// For the representation of JSON resources
-/// the types `JSONObject` and `JSONArray` are defined having a `value` properties
-/// of type `[String : Any] and [Any], respectively.
+/// To representat JSON resources the types `JSONObject` and `JSONArray`
+/// are defined having `value` property of type
+/// `[String : Any] and [Any] respectively.
 public class URLLoader<ResourceType: CreatableFromData> {
 
-    /// The type of the callback closure that is called to process the loaded resource.
+    /// The type of the closure called to process loaded resources.
     /// - Parameters:
-    ///     - result: Loaded resource or nil when the error occured.
-    ///     - requestId: The identifier of the completed request.
-    ///     - arbltrary user data, provided when the corresponding request was made
+    ///     - result: Loaded resource or `nil` when the error occured.
+    ///     - requestId: completed request descriptor.
+    ///     - arbitrary user data provided when the corresponding request was made.
     public typealias AcceptorType = (_ result: ResourceType?, _ requestId: RequestDescriptor, _ userData: Any?) -> ()
 
-    /// Type that represents a reference to the received request.
+    /// Type representing request reference.
     private typealias RequestPoolElementType = (id: UInt, acceptor: AcceptorType)
-    /// A data structure containing information about the requests being processed.
+    /// Data structure containing information about requests being processed.
     private var requestPool = [URL : (task: URLSessionTask, queries: [RequestPoolElementType])]()
 
-    /// The dispatch queue used to protect the consistency of
-    /// internal data structures in a multithread environment.
+    /// Dispatch queue used to protect consistency of
+    /// internal data structures in multithreaded environment.
     private let poolQueue = DispatchQueue(label: "resourceloader.data", qos: .utility)
 
-    /// Used to generate request id.
+    /// Variable used to generate request id.
     private var requestCounter = UInt(0)
 
-    /// The dispatch queue on which callback acceptors for loaded resources will be executed.
+    /// Dispatch queue where callback acceptors will be executed.
     private let callbackQueue: DispatchQueue
 
     /// Creates URLLoader object.
-    /// - Parameter callbackQueue: The dispatch queue on which callback acceptors
+    /// - Parameter callbackQueue: Dispatch queue where callback acceptors
     ///                            for loaded resources will be executed.
-    ///                            When omitted, DispatchQueue.main will be used.
+    ///                            When omitted DispatchQueue.main will be used.
     public init (callbackQueue: DispatchQueue = DispatchQueue.main) {
         self.callbackQueue = callbackQueue
     }
 
-    /// Initiate an asynchronous loading of a resource.
+    /// Initiate asynchronous loading of the resource.
     /// - Parameters:
-    ///     - url: The URL from which resource should be loaded.
-    ///     - userData: Arbitrary user data that will be passed to acceptor callback
-    ///                 when request will be completed.
-    ///     - acceptor: The completion handler closure that called
-    ///                 when a load finishes successfully or with an error.
-    /// - Returns: an object that uniquely identifies created request
-    ///            in the scope of a current instance of the URLLoader.
+    ///     - url: loaded resource URL.
+    ///     - userData: Arbitrary user data passed to acceptor callback
+    ///                 when request is completed.
+    ///     - acceptor: The completion handler closure called
+    ///                 when the load succeeds or fails.
+    /// - Returns: descriptor uniquely identifying created request
+    ///            in current URLLoader instance scope.
     @discardableResult
     public func requestResource(from url: URL, userData: Any? = nil, for acceptor: @escaping AcceptorType) -> RequestDescriptor {
         var queryId = requestCounter
@@ -119,12 +118,11 @@ public class URLLoader<ResourceType: CreatableFromData> {
         return RequestDescriptor(id: queryId, url: url)
     }
 
-    /// Cancel the resource loading.
-    /// When the specified loading query already complited or canceled,
-    /// subsequent calls to cancel it are ignored.
-    /// - Parameter request: The identifier of the canceling request,
-    ///                    returned from the corresponding call
-    ///                    of the `requestResource` method.
+    /// Cancel resource loading.
+    /// When  specified loading query already completed or canceled,
+    /// subsequent calls to cancelRequest are ignored.
+    /// - Parameter request: canceling request descriptor
+    ///                    returned from the `requestResource` method corresponding call.
     public func cancelRequest(_ request: RequestDescriptor) {
         poolQueue.sync {
             guard let (task, queries) = self.requestPool.removeValue(forKey: request.url) else {return}
