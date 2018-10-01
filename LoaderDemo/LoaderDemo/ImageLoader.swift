@@ -29,7 +29,7 @@ class ImageLoader {
 
     private var urlList = [URL]()
     private var imagePool = [IndexPath : (url: URL, image: UIImage?)]()
-    private var activeRequests = Set<ResourceQuery>()
+    private var activeRequests = Set<RequestDescriptor>()
 
     private let callbackQueue: DispatchQueue
     private let imageLoader: URLLoader<UIImage>

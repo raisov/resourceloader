@@ -47,7 +47,7 @@ class ResourceLoaderTests: XCTestCase {
         let imageData = archive(image)
 
         let completion = DispatchSemaphore(value: 0)
-        var requestId = ResourceQuery(id: 0, url: url)
+        var requestId = RequestDescriptor(id: 0, url: url)
         requestId = loader.requestResource(from: url, userData: imageData) {resource, id, userData in
             XCTAssertEqual(id, requestId)
             XCTAssertNotNil(userData as? Data)

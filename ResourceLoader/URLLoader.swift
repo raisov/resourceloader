@@ -9,7 +9,7 @@
 import Foundation
 
 /// The type of the identifier for the specific request to load.
-public struct ResourceQuery {
+public struct RequestDescriptor {
     public let url: URL
     fileprivate let id: UInt
 
@@ -24,13 +24,13 @@ public struct ResourceQuery {
     }
 }
 
-extension ResourceQuery: Hashable {
+extension RequestDescriptor: Hashable {
 
     public var hashValue: Int {
         return self.id.hashValue
     }
 
-    public static func == (lhs: ResourceQuery, rhs: ResourceQuery) -> Bool {
+    public static func == (lhs: RequestDescriptor, rhs: RequestDescriptor) -> Bool {
         return lhs.id == rhs.id
     }
 }
@@ -50,29 +50,32 @@ extension ResourceQuery: Hashable {
 /// of type `[String : Any] and [Any], respectively.
 public class URLLoader<ResourceType: CreatableFromData> {
 
-    /// The type of the closure that is called to process the loaded resource.
+    /// The type of the callback closure that is called to process the loaded resource.
     /// - Parameters:
     ///     - result: Loaded resource or nil when the error occured.
-    ///     - query: The identifier of the canceled request,
-    ///                  returned from the corresponding call
-    ///                  of the `requestResource` method.
-    public typealias AcceptorType = (_ result: ResourceType?, _ queryId: ResourceQuery, _ userData: Any?) -> ()
+    ///     - requestId: The identifier of the completed request.
+    ///     - arbltrary user data, provided when the corresponding request was made
+    public typealias AcceptorType = (_ result: ResourceType?, _ requestId: RequestDescriptor, _ userData: Any?) -> ()
 
-    /// Type that represents a reference to the received query.
-    private typealias QueryType = (id: UInt, acceptor: AcceptorType)
-
-    /// A data structure containing information about the queries being processed.
-    private var queryPool = [URL : (task: URLSessionTask, queries: [QueryType])]()
+    /// Type that represents a reference to the received request.
+    private typealias RequestPoolElementType = (id: UInt, acceptor: AcceptorType)
+    /// A data structure containing information about the requests being processed.
+    private var requestPool = [URL : (task: URLSessionTask, queries: [RequestPoolElementType])]()
 
     /// The dispatch queue used to protect the consistency of
     /// internal data structures in a multithread environment.
     private let poolQueue = DispatchQueue(label: "resourceloader.request", qos: .utility)
 
+    /// Used to generate request id.
+    private var requestCounter = UInt(0)
+
     /// The dispatch queue on which callback acceptors for loaded resources will be executed.
     private let callbackQueue: DispatchQueue
 
-    private var queryCounter = UInt(0)
-
+    /// Creates URLLoader object.
+    /// - Parameter callbackQueue: The dispatch queue on which callback acceptors
+    ///                            for loaded resources will be executed.
+    ///                            When omitted, DispatchQueue.main will be used.
     public init (callbackQueue: DispatchQueue = DispatchQueue.main) {
         self.callbackQueue = callbackQueue
     }
@@ -80,56 +83,58 @@ public class URLLoader<ResourceType: CreatableFromData> {
     /// Initiate an asynchronous loading of a resource.
     /// - Parameters:
     ///     - url: The URL from which resource should be loaded.
-    ///     - acceptor: The completion handler block which called
+    ///     - userData: Arbitrary user data that will be passed to acceptor callback
+    ///                 when request will be completed.
+    ///     - acceptor: The completion handler closure which called
     ///                 when a load finishes successfully or with an error.
-    /// - Returns: Returns an object that uniquely identifies created loading query
+    /// - Returns: an object that uniquely identifies created request
     ///            in the scope of a current instance of the URLLoader.
     @discardableResult
-    public func requestResource(from url: URL, userData: Any? = nil, for acceptor: @escaping AcceptorType) -> ResourceQuery {
-        var queryId = queryCounter
+    public func requestResource(from url: URL, userData: Any? = nil, for acceptor: @escaping AcceptorType) -> RequestDescriptor {
+        var queryId = requestCounter
         poolQueue.sync {
-            self.queryCounter = self.queryCounter &+ 1
-            queryId = queryCounter
-            if let (task, queries) = self.queryPool[url] {
-                queryPool[url] = (task: task, queries: queries + [(queryId, acceptor)])
+            self.requestCounter = self.requestCounter &+ 1
+            queryId = requestCounter
+            if let (task, queries) = self.requestPool[url] {
+                requestPool[url] = (task: task, queries: queries + [(queryId, acceptor)])
             } else {
                 let task = URLSession.shared.dataTask(with: url) {
                     data, response, error in
                     let result = data.flatMap {ResourceType.self.init(data: $0)} 
                     self.poolQueue.async {
-                        if let (task, queries) = self.queryPool.removeValue(forKey: url) {
+                        if let (task, queries) = self.requestPool.removeValue(forKey: url) {
                             assert(task.state == .completed)
                             self.callbackQueue.async {
                                 queries.forEach {
-                                    $0.acceptor(result, ResourceQuery(id: queryId, url: url), userData)
+                                    $0.acceptor(result, RequestDescriptor(id: queryId, url: url), userData)
                                 }
                             }
                         }
                     }
                 }
-                self.queryPool[url] = (task: task, queries: [(id: queryId, acceptor: acceptor)])
+                self.requestPool[url] = (task: task, queries: [(id: queryId, acceptor: acceptor)])
                 task.resume()
             }
         }
-        return ResourceQuery(id: queryId, url: url)
+        return RequestDescriptor(id: queryId, url: url)
     }
 
     /// Cancel the resource loading.
     /// When the specified loading query already complited or canceled,
     /// subsequent calls to cancel it are ignored.
-    /// - Parameter query: The identifier of the canceled request,
+    /// - Parameter request: The identifier of the canceling request,
     ///                    returned from the corresponding call
     ///                    of the `requestResource` method.
-    public func cancelRequest(_ query: ResourceQuery) {
+    public func cancelRequest(_ request: RequestDescriptor) {
         poolQueue.sync {
-            guard let (task, queries) = self.queryPool.removeValue(forKey: query.url) else {return}
-            let updatedQueries = queries.filter {$0.id != query.id}
+            guard let (task, queries) = self.requestPool.removeValue(forKey: request.url) else {return}
+            let updatedQueries = queries.filter {$0.id != request.id}
             if updatedQueries.isEmpty {
                 if .canceling != task.state && .completed != task.state {
                     task.cancel()
                 }
             } else {
-                self.queryPool[query.url] = (task: task, queries: updatedQueries)
+                self.requestPool[request.url] = (task: task, queries: updatedQueries)
             }
         }
     }
