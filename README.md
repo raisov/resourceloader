@@ -4,11 +4,11 @@ __ResourceLoader__ is a Swift library intended to asynchronously load resources 
 
 ## Overview
 
-This library was designed to completing the practical challenge from potential  employer. Below is a brief description of the task.
+This library was designed to complet practical challenge from potential  employer. Below is a brief description of the task.
 
 ### Task
 
-Your task is to create an image loading library that will be used to asynchronously download the images for the pins on the pinboard when they are needed.
+The task is to create an image loading library that will be used to asynchronously download the images for the pins on the pinboard when they are needed.
 
 The purpose of the library is to abstract the downloading (images, pdf, zip, etc) and caching of remote resources (images, JSON, XML, etc) so that client code can easily "swap" a URL for any kind of files ( JSON, XML, etc) without worrying about any of the details. Resources which are reused often should not be continually re-downloaded and should be cached, but the library cannot use infinite memory.
 
@@ -27,34 +27,34 @@ The purpose of the library is to abstract the downloading (images, pdf, zip, et
 
 The library is designed in accordance with these requirements. It contains some unit tests for loading JPEG, PNG, XML, PDF and JSON resources. 
 
-In addition, LoaderDemo iOS application was developed to demonstrate the use of the library.
+In addition to the required library LoaderDemo iOS application was developed to demonstrate the use of the library.
 
 
 ## Usage
 ```swift
 import ResourceLoader
 ```
-Loadable resources should have a type  conforming to the custom protocol [`CreatableFromData`](./ResourceLoader/CreatableFromData.swift). To ensure conformancy, a type must have an `init?(data: Data)` constructor.
+Loadable resources should have a type  conforming to the custom protocol [`CreatableFromData`](./ResourceLoader/CreatableFromData.swift). To ensure conformance, the type must have an `init?(data: Data)` constructor.
 
-Conformance can easily be provided for types such as UIImage (NSImage), XMLParser and PDFDocument by extensions like:
+Conformance can easily be provided for types such as UIImage (NSImage), XMLParser and PDFDocument by extensions as follows:
  ```swift
     extension UIImage: CreatableFromData {}
 ```
-For the representation of JSON resources the types `JSONObject` and `JSONArray` are defined in a library having a `value` properties of type `[String : Any] and [Any], respectively.
+To represent JSON resources the types `JSONObject` and `JSONArray` are defined in the library having `value` properties of type `[String : Any] and [Any] respectively.
 
-First of all the instance of `URLLoader` should be created, specialized to resource type.
+First of all the instance of `URLLoader` specialized to resource type needs to be created.
 ```swift
 let imageLoader = URLLoader<UIImage>()
 ```
-Method  `requestResource(url:userData:acceptor:)` is used to start the asynchronous download from the specified URL. When request is finished, closure specifies by `acceptor` parameter will be called. This closure receives three parameters:
+The method  `requestResource(url:userData:acceptor:)` is used to start the asynchronous download from the specified URL. When the request is finished the closure specified by `acceptor` parameter will be called. It receives three parameters:
 
-* loaded resource of specified type (may be nil when error ocured during loading);
-* descriptor of complited request (which, by the way) has `url` property);
-* arbitrary user data that have been specified in corresponding `requestResource` call.
+* loaded resource of specified type (may be `nil` when error ocurred during loading);
+* descriptor of completed request (which by the way has `url` property);
+* arbitrary user data that has been specified in the corresponding `requestResource` call.
 
-Method returns request descriptor, uniquely identified request in a scope of URLLoader instance.
+The method returns descriptor uniquely identifying request in the scope of `URLLoader` instance.
 
-For example, to download image and display it in `UIImageView`:
+Below is the example to download image and display it in `UIImageView`:
 
 ```swift
 import UIKit
@@ -76,13 +76,13 @@ let requestId = imageLoader.requestResource(url: url, userData: imageView) {
 }
 
 ```
-`URLLoader` has a `cancelRequest` method also. Then to cancel request above:
+The `URLLoader` also contains`cancelRequest` method. To cancel the above request use the following:
 
 ```
 imageLoader.cancelRequest(requestId)
 ```
 
-In the following example the list of user names loaded from JSON like this:
+The following example demonstrates loadding the list of user names from JSON.
 
 ```json
 [
@@ -111,19 +111,18 @@ loader.requestResource(url: jsonURL) {json, _, _ in
 
 ## Integration
 
-After you clone or download from [GitHub](https://github.com/raisov/resourceloader) to your directory, ResourceLoader.xcworkspace  will be found there. This workspace contains two Xcode projects:
+After you clone or download from [GitHub](https://github.com/raisov/resourceloader) to your directory you will find ResourceLoader.xcworkspace there. The workspace contains two Xcode projects:
 
 * ResourceLoader - to build ResourceLoader.framework and run unit tests;
-* LoaderDemo - to build and run an universal iOS application that demonstrates library usage.
+* LoaderDemo - to build and run universal iOS application demonstrating library usage.
 
-The simplest way to integrate __ResourceLoader__ in your project is to include URLLoader.swift and CreatableFromData.swift files in a project source tree.
-Another way is include whole ResourceLoader.xcodeproj in your workspace. Then open _Project Inspector_ and in _Build Phases_ tab add ResourceLoader.framework to _Link Binary With Libraries_ section. Don't forget `import ResourceLoader` and your are ready to use it.
+The easiest way to integrate __ResourceLoader__ to your project is to include URLLoader.swift and CreatableFromData.swift files in a project source tree.
+Another way is to include the whole ResourceLoader.xcodeproj in your workspace. After that open _Project Inspector_, select _Build Phases_ tab and add ResourceLoader.framework to _Link Binary With Libraries_ section. Don't forget to `import ResourceLoader` and your are ready to use it.
 
 ## Demo Application
 
-__LoaderDemo__ is an application that load and display randomly selected set of images  listed in [JSON](http://pastebin.com/raw/wgkJgazE). When a user press _Refresh_ button the next random images set loaded.
-Application may run on iPhone or iPad with iOS version 11.0 and above.
-`URLLoader` object is used in this application to load JSON with list of images URL and to asynchronously load this images, naturaly.
+__LoaderDemo__ is an application that loads and displays randomly selected sets of images  listed in [JSON](http://pastebin.com/raw/wgkJgazE). When a user presses _Refresh_ button the next random images set is loaded.The pplication may run on iPhone or iPad with iOS version 11.0 or above.
+The `URLLoader` object is used in this application to load JSON with list of image URLs and to asynchronously load these images.
 
 ![Screen shot](./LoaderDemo/ScreenShot.png)
 
