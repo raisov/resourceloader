@@ -18,7 +18,7 @@ The purpose of the library is to abstract the downloading (images, pdf, zip, et
 * You can work under the assumption that the same URL will always return the same resource.
 * The library should be easy to integrate into new iOS project / apps.
 
-The library is designed in accordance with these requirements. It contains some unit tests for loading images, xml, pdf and json resources. 
+The library is designed in accordance with these requirements. It contains some unit tests for loading JPEG, PNG, XML, PDF and JSON resources. 
 
 In addition, TestLoader iOS application was developed to demonstrate the use of the library.
 
@@ -52,6 +52,8 @@ For example, to download image and display it in `UIImageView`:
 ```swift
 import UIKit
 import ResourceLoader
+
+extension UIImage: CreatableFromData {}
 // ...
 let imageView: UIImageView
 // ...
@@ -62,7 +64,7 @@ let requestId = imageLoader.requestResource(url: url, userData: imageView) {
     view.image = image
 }
 ```
-`URLLoader` has a `cancelRequest` method also.
+`URLLoader` has a `cancelRequest` method also. Then to cancel request above:
 
 ```
 imageLoader.cancelRequest(requestId)
