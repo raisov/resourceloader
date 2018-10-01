@@ -1,9 +1,14 @@
 #  ResourceLoader
 
 __ResourceLoader__ is a Swift library intended to asynchronously load resources identified by URL.
+
 ## Overview
 
 This library was designed to completing the practical challenge from potential  employer. Below is a brief description of the task.
+
+### Task
+
+Your task is to create an image loading library that will be used to asynchronously download the images for the pins on the pinboard when they are needed.
 
 The purpose of the library is to abstract the downloading (images, pdf, zip, etc) and caching of remote resources (images, JSON, XML, etc) so that client code can easily "swap" a URL for any kind of files ( JSON, XML, etc) without worrying about any of the details. Resources which are reused often should not be continually re-downloaded and should be cached, but the library cannot use infinite memory.
 
@@ -17,6 +22,8 @@ The purpose of the library is to abstract the downloading (images, pdf, zip, et
 * Multiple distinct resources may be requested in parallel;
 * You can work under the assumption that the same URL will always return the same resource.
 * The library should be easy to integrate into new iOS project / apps.
+
+### Solution
 
 The library is designed in accordance with these requirements. It contains some unit tests for loading JPEG, PNG, XML, PDF and JSON resources. 
 
