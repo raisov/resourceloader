@@ -114,7 +114,7 @@ Another way is include whole ResourceLoader.xcodeproj in your workspace. Then op
 
 ## Demo Application
 
-__LoaderDemo__ is an application thet load and display randomly selected set of images  listed in [JSON](http://pastebin.com/raw/wgkJgazE). When a user press _Refresh_ button than next image set loaded.
+__LoaderDemo__ is an application that load and display randomly selected set of images  listed in [JSON](http://pastebin.com/raw/wgkJgazE). When a user press _Refresh_ button the next random images set loaded.
 Application may run on iPhone or iPad with iOS version 11.0 and above.
 `URLLoader` object is used in this application to load JSON with list of images URL and to asynchronously load this images, naturaly.
 
