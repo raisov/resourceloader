@@ -18,7 +18,7 @@ public struct ResourceQuery {
     ///     - id: The number that uniquely identifies a resource query
     ///           in the scope of a specific instance of the URLLoader.
     ///     - url: The URL to which the resource query relates
-    fileprivate init(id: UInt, url: URL) {
+    init(id: UInt, url: URL) {
         self.id = id
         self.url = url
     }
@@ -56,7 +56,7 @@ public class URLLoader<ResourceType: CreatableFromData> {
     ///     - query: The identifier of the canceled request,
     ///                  returned from the corresponding call
     ///                  of the `requestResource` method.
-    public typealias AcceptorType = (_ result: ResourceType?, _ userData: Any?) -> ()
+    public typealias AcceptorType = (_ result: ResourceType?, _ queryId: ResourceQuery, _ userData: Any?) -> ()
 
     /// Type that represents a reference to the received query.
     private typealias QueryType = (id: UInt, acceptor: AcceptorType)
@@ -101,7 +101,7 @@ public class URLLoader<ResourceType: CreatableFromData> {
                             assert(task.state == .completed)
                             self.callbackQueue.async {
                                 queries.forEach {
-                                    $0.acceptor(result, userData)
+                                    $0.acceptor(result, ResourceQuery(id: queryId, url: url), userData)
                                 }
                             }
                         }
