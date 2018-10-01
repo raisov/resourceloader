@@ -64,7 +64,7 @@ public class URLLoader<ResourceType: CreatableFromData> {
 
     /// The dispatch queue used to protect the consistency of
     /// internal data structures in a multithread environment.
-    private let poolQueue = DispatchQueue(label: "resourceloader.request", qos: .utility)
+    private let poolQueue = DispatchQueue(label: "resourceloader.data", qos: .utility)
 
     /// Used to generate request id.
     private var requestCounter = UInt(0)
