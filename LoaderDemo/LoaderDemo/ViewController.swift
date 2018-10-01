@@ -17,11 +17,8 @@ extension ViewController: ImageLoaderDelegate {
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(refresh))
     }
 
-    func update(element: Int) {
-        guard let path = (collectionView.indexPathsForVisibleItems.first {$0.hashValue == element}) else {
-            return
-        }
-        collectionView.reloadItems(at: [path])
+    func update(element: IndexPath) {
+        collectionView.reloadItems(at: [element])
     }
 
 }
@@ -125,7 +122,7 @@ class ViewController: UICollectionViewController {
         let imageView = cell.pictureView
         imageView?.alpha = 0
 
-        let image = model.getImage(for: indexPath.hashValue)
+        let image = model.getImage(for: indexPath)
         imageView?.image = image
         if image == nil {
             pendingView?.startAnimating()

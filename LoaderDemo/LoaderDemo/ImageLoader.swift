@@ -13,7 +13,7 @@ extension UIImage: CreatableFromData {}
 
 protocol ImageLoaderDelegate: class {
     func update()
-    func update(element: Int)
+    func update(element: IndexPath)
 }
 
 
@@ -28,7 +28,7 @@ class ImageLoader {
     private lazy var errorImage = UIImage(named: "troubles.png")
 
     private var urlList = [URL]()
-    private var imagePool = [Int : (url: URL, image: UIImage?)]()
+    private var imagePool = [IndexPath : (url: URL, image: UIImage?)]()
     private var activeRequests = Set<ResourceQuery>()
 
     private let callbackQueue: DispatchQueue
@@ -39,7 +39,7 @@ class ImageLoader {
     private var testURLList = [URL]()
     private var testURLLoadComplited = DispatchSemaphore(value: 0)
     private func loadTestData() {
-        let jsonLoader = URLLoader<JSONArray>(callbackQueue: callbackQueue)
+        let jsonLoader = URLLoader<JSONArray>()
         let jsonURL = URL(string: testURLString)!
         jsonLoader.requestResource(from: jsonURL) {jsonItems, _, _ in
             jsonItems?.value.compactMap{$0 as? [String : Any]}.forEach {
@@ -58,22 +58,18 @@ class ImageLoader {
 
     init() {
         callbackQueue = DispatchQueue(label: "ee.simples.testloader", qos: .utility)
-        imageLoader = URLLoader<UIImage>(callbackQueue: callbackQueue)
+        imageLoader = URLLoader<UIImage>()
     }
 
     func refresh() {
-        callbackQueue.sync {
             activeRequests.forEach{imageLoader.cancelRequest($0)}
             activeRequests.removeAll()
             imagePool.removeAll()
             urlList.shuffle()
-        }
-        DispatchQueue.main.async {
             self.delegate?.update()
-        }
     }
 
-    func getImage(for element: Int) -> UIImage? {
+    func getImage(for element: IndexPath) -> UIImage? {
         guard urlList.count != 0 else {return nil}
         var url: URL
         var image: UIImage?
@@ -87,9 +83,7 @@ class ImageLoader {
             let requestId = imageLoader.requestResource(from: url) {image, id, _ in
                 self.activeRequests.remove(id)
                 self.imagePool[element] = (url, image ?? self.errorImage)
-                DispatchQueue.main.async {
                     self.delegate?.update(element: element)
-                }
             }
             activeRequests.insert(requestId)
         }
