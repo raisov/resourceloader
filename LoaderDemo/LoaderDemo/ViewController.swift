@@ -12,6 +12,7 @@ import ResourceLoader
 extension ViewController: ImageLoaderDelegate {
 
     func update() {
+        mumberOfElements = 10
         collectionView.reloadData()
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(refresh))
     }
@@ -20,7 +21,6 @@ extension ViewController: ImageLoaderDelegate {
         guard let path = (collectionView.indexPathsForVisibleItems.first {$0.hashValue == element}) else {
             return
         }
-        print("==> \(#function) path \(path)")
         collectionView.reloadItems(at: [path])
     }
 
@@ -29,6 +29,8 @@ extension ViewController: ImageLoaderDelegate {
 class ViewController: UICollectionViewController {
 
     private var model: ImageLoader!
+
+    private var mumberOfElements = 0
 
     @objc func refresh() {
         navigationItem.rightBarButtonItem = nil
@@ -58,7 +60,8 @@ class ViewController: UICollectionViewController {
         layout.minimumInteritemSpacing = spacing
         layout.minimumLineSpacing = spacing
         let shortSide = CGFloat.minimum(bounds.width, bounds.height) - margins
-        let itemsOnShortSide = CGFloat.maximum((shortSide/maxCellSize).rounded(.towardZero), 2.0)
+        let itemsOnShortSide = CGFloat(2.0)
+//        let itemsOnShortSide = CGFloat.maximum((shortSide/maxCellSize).rounded(.towardZero), 2.0)
         let shortSideTotalSpacing = spacing * (itemsOnShortSide - 1)
         let cellSize = ((shortSide - shortSideTotalSpacing) / itemsOnShortSide).rounded(.towardZero)
         layout.itemSize = CGSize(width: cellSize, height: cellSize)
@@ -82,7 +85,6 @@ class ViewController: UICollectionViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         calculateLayout()
-        model.refresh()
     }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -114,16 +116,13 @@ class ViewController: UICollectionViewController {
     }
 
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return model.numberOfImages
+        return mumberOfElements
     }
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        print("==> \(#function) path \(indexPath)")
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PictureFrame", for: indexPath) as! PictureFrame
         let pendingView = cell.pendingView
         let imageView = cell.pictureView
-//        let pendingView = cell.contentView.subviews.lazy.compactMap({ $0 as? UIActivityIndicatorView }).first
-//        let imageView = cell.contentView.subviews.lazy.compactMap({ $0 as? UIImageView }).first
         imageView?.alpha = 0
 
         let image = model.getImage(for: indexPath.hashValue)
