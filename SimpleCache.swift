@@ -8,37 +8,50 @@
 
 import Foundation
 
+/// Data stored in cache.
 fileprivate struct CacheElement {
     let data: Data
 
+    /// How many times cache was accessed after this data has been saved.
     private var lifeTime: Double
+    /// How many times these data queried.
     private var hitCount: Double
 
-    var rate: Double {
+    /// Frequency of this data  using.
+    var frequency: Double {
         return hitCount / lifeTime
     }
 
+    /// Size of data.
     var size: Int {
         return data.count
     }
 
+    /// Called each time when cache queries.
     mutating func tick() {
         lifeTime = lifeTime + 1.0
     }
 
+    /// Called each time these data received from cache.
     mutating func hit() {
         hitCount = hitCount + 1.0
     }
 
-    init(data: Data, initialRate: Double) {
+    /// Creates cache element.
+    /// - Parameters:
+    ///     - data: cached data.
+    ///     - initialFrequency: Assumed using frequency.
+    init(data: Data, initialFrequency: Double) {
         self.data = data
         self.lifeTime = 1.0
-        self.hitCount = initialRate // give him a chance
+        self.hitCount = initialFrequency
     }
 }
 
+/// Simple inmemory cache.
 class SimpleCache: DataCache {
 
+    /// Maximum amount of data in cache.
     private let capacity: Int
 
     private var pool = [Int : CacheElement]()
@@ -50,6 +63,8 @@ class SimpleCache: DataCache {
         self.capacity = capacity
     }
 
+    /// Cached data put/get.
+    /// - Parameter index: unique data identifier.
     subscript(index: Int) -> Data? {
 
         get {
@@ -70,9 +85,9 @@ class SimpleCache: DataCache {
             guard let data = newValue else {return}
             let needed = data.count
             guard needed <= capacity else {return}
-            let averageRate = totalHits / totalRequest
+            let averageFrequence = totalHits / totalRequest
             var free = capacity - pool.reduce(0){$0 + $1.value.size}
-            let candidatesToTrash = pool.map{($0.key,$0.value.rate)}.filter{$0.1 < averageRate}.sorted{$0.1 < $1.1}.map{$0.0}
+            let candidatesToTrash = pool.map{($0.key,$0.value.frequency)}.filter{$0.1 < averageFrequence}.sorted{$0.1 < $1.1}.map{$0.0}
             for index in candidatesToTrash {
                 if let removed = pool.removeValue(forKey: index) {
                     free += removed.size
@@ -80,7 +95,7 @@ class SimpleCache: DataCache {
                 if free >= needed {break}
             }
             if free >= needed {
-                pool[index] = CacheElement(data: data, initialRate: averageRate)
+                pool[index] = CacheElement(data: data, initialFrequency: averageFrequence)
             }
         }
     }

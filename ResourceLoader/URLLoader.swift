@@ -70,8 +70,10 @@ public class URLLoader<ResourceType: CreatableFromData> {
     /// Data structure containing information about requests being processed.
     private var requestPool = [URL : (task: URLSessionTask, queries: [RequestPoolElementType])]()
 
+    /// Limit of cache size.
+    private var cacheLimit = 8096 * 1024
     /// Resource cache.
-    private var cache: DataCache = SimpleCache(capacity: 8096 * 1024)
+    private var cache: DataCache
 
     /// Dispatch queue used to protect consistency of
     /// internal data structures in multithreaded environment.
@@ -89,7 +91,7 @@ public class URLLoader<ResourceType: CreatableFromData> {
     ///                            When omitted DispatchQueue.main will be used.
     public init (callbackQueue: DispatchQueue = DispatchQueue.main) {
         self.callbackQueue = callbackQueue
-
+        cache = SimpleCache(capacity: cacheLimit)
     }
 
     /// Initiate asynchronous loading of the resource.
