@@ -71,7 +71,7 @@ public class URLLoader<ResourceType: CreatableFromData> {
     private var requestPool = [URL : (task: URLSessionTask, queries: [RequestPoolElementType])]()
 
     /// Limit of cache size.
-    private var cacheLimit = 8096 * 1024
+    private var cacheLimit = 2048 * 1024
     /// Resource cache.
     private var cache: DataCache
 

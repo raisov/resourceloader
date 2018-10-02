@@ -72,6 +72,14 @@ class SimpleCacheTests: XCTestCase {
         if let valueFromCache = valueFromCache {
             XCTAssertEqual(valueFromCache, newData5)
         }
+
+        // Clean up policy test.
+                                   // capacity is not enough for anything now
+                                   // [5] is a larger element
+        XCTAssertNotNil(cache[5])  // It must exist before
+        cache[-1] = Data(count: 1)
+        XCTAssertNil(cache[5])     // and not exist after
+        XCTAssertNotNil(cache[-1]) // but new element is in cache
     }
 
     func testPerformanceExample() {
