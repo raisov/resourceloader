@@ -87,7 +87,9 @@ class SimpleCache: DataCache {
             guard needed <= capacity else {return}
             let averageFrequence = totalHits / totalRequest
             var free = capacity - pool.reduce(0){$0 + $1.value.size}
-            let candidatesToTrash = pool.map{($0.key,$0.value.frequency)}.filter{$0.1 < averageFrequence}.sorted{$0.1 < $1.1}.map{$0.0}
+            let candidatesToTrash = pool.map{($0.key,$0.value.frequency)}.filter{ // (index, frequency)
+                $0.1 <= averageFrequence // where frequency <= averageFrequency
+                }.sorted{$0.1 < $1.1}.map{$0.0} // [index] sorted by increasing frequency order.
             for index in candidatesToTrash {
                 if let removed = pool.removeValue(forKey: index) {
                     free += removed.size
