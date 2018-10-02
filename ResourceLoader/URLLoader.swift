@@ -8,6 +8,15 @@
 
 import Foundation
 
+/// Protocol used to hashing resources
+
+protocol DataCache {
+    init(capacity: Int)
+    subscript(index: Int) -> Data? {get set}
+    func cleanUp()
+}
+
+
 /// Descriptor type for the specific request to load.
 public struct RequestDescriptor {
     public let url: URL
@@ -61,6 +70,9 @@ public class URLLoader<ResourceType: CreatableFromData> {
     /// Data structure containing information about requests being processed.
     private var requestPool = [URL : (task: URLSessionTask, queries: [RequestPoolElementType])]()
 
+    /// Resource cache.
+    private var cache: DataCache = SimpleCache(capacity: 8096 * 1024)
+
     /// Dispatch queue used to protect consistency of
     /// internal data structures in multithreaded environment.
     private let poolQueue = DispatchQueue(label: "resourceloader.data", qos: .utility)
@@ -77,6 +89,7 @@ public class URLLoader<ResourceType: CreatableFromData> {
     ///                            When omitted DispatchQueue.main will be used.
     public init (callbackQueue: DispatchQueue = DispatchQueue.main) {
         self.callbackQueue = callbackQueue
+
     }
 
     /// Initiate asynchronous loading of the resource.
@@ -90,32 +103,42 @@ public class URLLoader<ResourceType: CreatableFromData> {
     ///            in current URLLoader instance scope.
     @discardableResult
     public func requestResource(from url: URL, userData: Any? = nil, for acceptor: @escaping AcceptorType) -> RequestDescriptor {
-        var queryId = requestCounter
+        var requestId = requestCounter
         poolQueue.sync {
             self.requestCounter = self.requestCounter &+ 1
-            queryId = requestCounter
-            if let (task, queries) = self.requestPool[url] {
-                requestPool[url] = (task: task, queries: queries + [(queryId, acceptor)])
+            requestId = requestCounter
+
+            if let data = cache[url.hashValue] {
+                 callbackQueue.async {
+                    let result = ResourceType.self.init(data: data)
+                    let descriptor = RequestDescriptor(id: requestId, url: url)
+                    acceptor(result, descriptor, userData)
+                }
+            } else if let (task, queries) = self.requestPool[url] {
+                requestPool[url] = (task: task, queries: queries + [(requestId, acceptor)])
             } else {
                 let task = URLSession.shared.dataTask(with: url) {
                     data, response, error in
-                    let result = data.flatMap {ResourceType.self.init(data: $0)} 
+                    if let data = data {
+                        self.cache[url.hashValue] = data
+                    }
+                    let result = data.flatMap {ResourceType.self.init(data: $0)}
                     self.poolQueue.async {
                         if let (task, queries) = self.requestPool.removeValue(forKey: url) {
                             assert(task.state == .completed)
                             self.callbackQueue.async {
                                 queries.forEach {
-                                    $0.acceptor(result, RequestDescriptor(id: queryId, url: url), userData)
+                                    $0.acceptor(result, RequestDescriptor(id: requestId, url: url), userData)
                                 }
                             }
                         }
                     }
                 }
-                self.requestPool[url] = (task: task, queries: [(id: queryId, acceptor: acceptor)])
+                self.requestPool[url] = (task: task, queries: [(id: requestId, acceptor: acceptor)])
                 task.resume()
             }
         }
-        return RequestDescriptor(id: queryId, url: url)
+        return RequestDescriptor(id: requestId, url: url)
     }
 
     /// Cancel resource loading.

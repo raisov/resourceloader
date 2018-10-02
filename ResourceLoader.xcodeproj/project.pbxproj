@@ -18,6 +18,7 @@
 		E0481F9F215E634100A7653A /* JSONObject.json in Resources */ = {isa = PBXBuildFile; fileRef = E0481F9A215E634100A7653A /* JSONObject.json */; };
 		E05F29B9215FC63A00CC47FF /* ResourceLoader.xcodeproj in Frameworks */ = {isa = PBXBuildFile; fileRef = E05F29B6215FC62100CC47FF /* ResourceLoader.xcodeproj */; };
 		E05F29CF2162A4D900CC47FF /* ScreenShot.png in Resources */ = {isa = PBXBuildFile; fileRef = E05F29CE2162A4D900CC47FF /* ScreenShot.png */; };
+		E05F29D22162D74900CC47FF /* SimpleCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = E05F29D12162D74900CC47FF /* SimpleCache.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +47,7 @@
 		E0481F9A215E634100A7653A /* JSONObject.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = JSONObject.json; sourceTree = "<group>"; };
 		E05F29B6215FC62100CC47FF /* ResourceLoader.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = ResourceLoader.xcodeproj; sourceTree = "<group>"; };
 		E05F29CE2162A4D900CC47FF /* ScreenShot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ScreenShot.png; sourceTree = "<group>"; };
+		E05F29D12162D74900CC47FF /* SimpleCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleCache.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +73,7 @@
 		E0481F6E215E602E00A7653A = {
 			isa = PBXGroup;
 			children = (
+				E05F29D12162D74900CC47FF /* SimpleCache.swift */,
 				E03CD57A215F9DBC00951BF7 /* README.md */,
 				E05F29CE2162A4D900CC47FF /* ScreenShot.png */,
 				E0481F7A215E602E00A7653A /* ResourceLoader */,
@@ -247,6 +250,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E05F29D22162D74900CC47FF /* SimpleCache.swift in Sources */,
 				E0481F93215E60DA00A7653A /* URLLoader.swift in Sources */,
 				E0481F95215E622E00A7653A /* CreatableFromData.swift in Sources */,
 			);
