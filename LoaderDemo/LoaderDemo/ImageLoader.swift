@@ -31,7 +31,6 @@ class ImageLoader {
     private var imagePool = [IndexPath : (url: URL, image: UIImage?)]()
     private var activeRequests = Set<RequestDescriptor>()
 
-    private let callbackQueue: DispatchQueue
     private let imageLoader: URLLoader<UIImage>
 
     // In my homework were written: "Use the following URL to upload data"
@@ -49,15 +48,12 @@ class ImageLoader {
                 }
             }
             self.urlList.shuffle()
-            DispatchQueue.main.async {
-                self.delegate?.update()
-            }
+            self.delegate?.update()
         }
     }
 
 
     init() {
-        callbackQueue = DispatchQueue(label: "ee.simples.testloader", qos: .utility)
         imageLoader = URLLoader<UIImage>()
     }
 
