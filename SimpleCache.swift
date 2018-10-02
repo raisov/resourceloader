@@ -102,6 +102,7 @@ class SimpleCache: DataCache {
         }
     }
 
+    /// Flush all cached data.
     func cleanUp() {
         pool.removeAll()
     }
