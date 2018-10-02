@@ -44,6 +44,7 @@ class ViewController: UICollectionViewController {
         model.delegate = self
      }
 
+    /// Provides suitable cells size and equal cell spacing to different screen orientations.
     func makeLayout(for size: CGSize) {
 
         let maxItemSize = CGSize(width: 480, height: 320)
