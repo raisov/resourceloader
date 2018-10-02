@@ -83,6 +83,7 @@ class SimpleCache: DataCache {
 
         set {
             guard let data = newValue else {return}
+            pool.removeValue(forKey: index)
             let needed = data.count
             guard needed <= capacity else {return}
             let averageFrequence = totalHits / totalRequest
