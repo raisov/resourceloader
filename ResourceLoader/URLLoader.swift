@@ -8,15 +8,6 @@
 
 import Foundation
 
-/// Protocol used to hashing resources
-
-protocol DataCache {
-    init(capacity: Int)
-    subscript(index: Int) -> Data? {get set}
-    func cleanUp()
-}
-
-
 /// Descriptor type for the specific request to load.
 public struct RequestDescriptor {
     public let url: URL
@@ -87,11 +78,6 @@ public class URLLoader<ResourceType: CreatableFromData> {
     /// Data structure containing information about requests being processed.
     private var requestPool = [URL : (task: URLSessionTask, queries: [RequestPoolElementType])]()
 
-    /// Limit of cache size.
-    private var cacheLimit = 2048 * 1024
-    /// Resource cache.
-    private var cache: DataCache
-
     /// Dispatch queue used to protect consistency of
     /// internal data structures in multithreaded environment.
     private let poolQueue = DispatchQueue(label: "resourceloader.data", qos: .utility)
@@ -108,7 +94,6 @@ public class URLLoader<ResourceType: CreatableFromData> {
     ///                            When omitted DispatchQueue.main will be used.
     public init (callbackQueue: DispatchQueue = DispatchQueue.main) {
         self.callbackQueue = callbackQueue
-        cache = SimpleCache(capacity: cacheLimit)
     }
 
     /// Initiate asynchronous loading of the resource.
@@ -130,20 +115,11 @@ public class URLLoader<ResourceType: CreatableFromData> {
                 self.requestCounter = self.requestCounter &+ 1
                 requestId = requestCounter
 
-                if let data = cache[url.hashValue] {
-                    callbackQueue.async {
-                        let result = Result(data: data)
-                        let descriptor = RequestDescriptor(id: requestId, url: url)
-                        acceptor(result, descriptor, userData)
-                    }
-                } else if let (task, queries) = self.requestPool[url] {
+                if let (task, queries) = self.requestPool[url] {
                     requestPool[url] = (task: task, queries: queries + [(requestId, acceptor)])
                 } else {
                     let task = URLSession.shared.dataTask(with: url) {
                         data, response, error in
-                        if let data = data {
-                            self.cache[url.hashValue] = data
-                        }
                         let result = Result(data: data, error: error)
                         self.poolQueue.async {
                             if let (task, queries) = self.requestPool.removeValue(forKey: url) {
