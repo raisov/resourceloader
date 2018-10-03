@@ -27,6 +27,8 @@ The purpose of the library is to abstract the downloading (images, pdf, zip, et
 
 The library is designed in accordance with these requirements. It contains some unit tests for loading JPEG, PNG, XML, PDF and JSON resources. 
 
+Library is fully thread-safe.
+
 In addition to the required library LoaderDemo iOS application was developed to demonstrate the use of the library.
 
 
