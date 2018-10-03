@@ -57,7 +57,7 @@ extension RequestDescriptor: Hashable {
 /// are defined having `value` property of type
 /// `[String : Any] and [Any] respectively.
 public class URLLoader<ResourceType: CreatableFromData> {
-    /// Result or request type
+    /// Result of request
     public  enum Result {
         case success(ResourceType)
         case empty

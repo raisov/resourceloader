@@ -56,7 +56,7 @@ class ImageLoader {
             }
         }
     }
-
+//
 
     init() {
         imageLoader = URLLoader<UIImage>()
