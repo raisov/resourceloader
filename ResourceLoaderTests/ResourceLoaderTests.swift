@@ -51,10 +51,17 @@ class ResourceLoaderTests: XCTestCase {
         requestId = loader.requestResource(from: url, userData: imageData) {resource, id, userData in
             XCTAssertEqual(id, requestId)
             XCTAssertNotNil(userData as? Data)
-            XCTAssertNotNil(resource, "can't load resource from " + url.relativeString)
-            if let resource = resource, let userData = userData as? Data {
-                XCTAssertEqual(resource.size, image.size)
-                XCTAssertEqual(archive(resource), userData)
+            switch resource {
+            case .success(let received):
+                XCTAssertEqual(received.size, image.size)
+                XCTAssertEqual(archive(received), imageData)
+                if let userData = userData as? Data {
+                    XCTAssertEqual(userData, imageData)
+                }
+            case .empty:
+                XCTFail("can't load JPEG from " + url.relativeString)
+            case .error(let error):
+                XCTFail("Error \(error) while loading from " + url.relativeString)
             }
             completion.signal()
         }
@@ -76,12 +83,15 @@ class ResourceLoaderTests: XCTestCase {
 
         let completion = DispatchSemaphore(value: 0)
         loader.requestResource(from: url) {resource, _, _ in
-            XCTAssertNotNil(resource, "can't load resource from " + url.relativeString)
-            if let resource = resource {
-                XCTAssertEqual(resource.size, image.size)
-                XCTAssertEqual(archive(resource), imageData)
+            switch resource {
+            case .success(let received):
+                XCTAssertEqual(received.size, image.size)
+                XCTAssertEqual(archive(received), imageData)
+            case .empty:
+                XCTFail("can't load PNG from " + url.relativeString)
+            case .error(let error):
+                XCTFail("Error \(error) while loading from " + url.relativeString)
             }
-
             completion.signal()
         }
         completion.wait() // while completion handler has been finished
@@ -126,12 +136,16 @@ class ResourceLoaderTests: XCTestCase {
 
         let completion = DispatchSemaphore(value: 0)
         loader.requestResource(from: url) {resource, _, _  in
-            XCTAssertNotNil(resource, "can't load resource from " + url.relativeString)
-            if let resource = resource {
+            switch resource {
+            case .success(let received):
                 let parserDelegate = TestXMLParser()
-                resource.delegate = parserDelegate
-                resource.parse()
+                received.delegate = parserDelegate
+                received.parse()
                 XCTAssertEqual(parserDelegate.value, xmlContent)
+            case .empty:
+                XCTFail("can't load XML from " + url.relativeString)
+            case .error(let error):
+                XCTFail("Error \(error) while loading from " + url.relativeString)
             }
             completion.signal()
         }
@@ -149,10 +163,14 @@ class ResourceLoaderTests: XCTestCase {
 
         let completion = DispatchSemaphore(value: 0)
         loader.requestResource(from: url) {resource, _, _  in
-            XCTAssertNotNil(resource, "can't load resource from " + url.relativeString)
-            if let resource = resource {
-                let selections = resource.findString("Swift")
+            switch resource {
+            case .success(let received):
+                let selections = received.findString("Swift")
                 XCTAssertFalse(selections.isEmpty, "Swift expirience not found in CV")
+            case .empty:
+                XCTFail("can't load PDF from " + url.relativeString)
+            case .error(let error):
+                XCTFail("Error \(error) while loading from " + url.relativeString)
             }
             completion.signal()
         }
@@ -170,12 +188,16 @@ class ResourceLoaderTests: XCTestCase {
 
         let completion = DispatchSemaphore(value: 0)
         loader.requestResource(from: url) {resource, _, _  in
-            XCTAssertNotNil(resource, "can't load resource from " + url.relativeString)
-            if let resource = resource {
-                XCTAssertNotNil(resource.value["number"] as? Int)
-                XCTAssertNotNil(resource.value["string"] as? String)
-                XCTAssertNotNil(resource.value["bool"] as? Bool)
-                XCTAssertNotNil(resource.value["empty"] as? NSNull)
+            switch resource {
+            case .success(let received):
+                XCTAssertNotNil(received.value["number"] as? Int)
+                XCTAssertNotNil(received.value["string"] as? String)
+                XCTAssertNotNil(received.value["bool"] as? Bool)
+                XCTAssertNotNil(received.value["empty"] as? NSNull)
+            case .empty:
+                XCTFail("can't load JSON object from " + url.relativeString)
+            case .error(let error):
+                XCTFail("Error \(error) while loading from " + url.relativeString)
             }
             completion.signal()
         }
@@ -193,9 +215,13 @@ class ResourceLoaderTests: XCTestCase {
 
         let completion = DispatchSemaphore(value: 0)
         loader.requestResource(from: url) {resource, _, _  in
-            XCTAssertNotNil(resource, "can't load resource from " + url.relativeString)
-            if let resource = resource {
-                XCTAssertEqual(resource.value.count, 12)
+            switch resource {
+            case .success(let received):
+                XCTAssertEqual(received.value.count, 12)
+           case .empty:
+                XCTFail("can't load JSON object from " + url.relativeString)
+            case .error(let error):
+                XCTFail("Error \(error) while loading from " + url.relativeString)
             }
             completion.signal()
         }

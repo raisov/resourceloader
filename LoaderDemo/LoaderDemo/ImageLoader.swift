@@ -40,15 +40,20 @@ class ImageLoader {
     private func loadTestData() {
         let jsonLoader = URLLoader<JSONArray>()
         let jsonURL = URL(string: testURLString)!
-        jsonLoader.requestResource(from: jsonURL) {jsonItems, _, _ in
-            jsonItems?.value.compactMap{$0 as? [String : Any]}.forEach {
-                guard let urls = $0["urls"] as? [String : String] else {return}
-                if let urlString = urls["raw"], let url = URL(string: urlString) {
-                    self.urlList.append(url)
+        jsonLoader.requestResource(from: jsonURL) {result, _, _ in
+            switch result {
+            case .success(let jsonItems):
+                jsonItems.value.compactMap{$0 as? [String : Any]}.forEach {
+                    guard let urls = $0["urls"] as? [String : String] else {return}
+                    if let urlString = urls["raw"], let url = URL(string: urlString) {
+                        self.urlList.append(url)
+                    }
                 }
+                self.urlList.shuffle()
+                self.delegate?.update()
+            default:
+                break
             }
-            self.urlList.shuffle()
-            self.delegate?.update()
         }
     }
 
@@ -76,10 +81,15 @@ class ImageLoader {
             url = urlList[imagePool.count % urlList.count]
             image = nil
             imagePool[element] = (url, image)
-            let requestId = imageLoader.requestResource(from: url) {image, id, _ in
+            let requestId = imageLoader.requestResource(from: url) {result, id, _ in
                 self.activeRequests.remove(id)
-                self.imagePool[element] = (url, image ?? self.errorImage)
-                    self.delegate?.update(element: element)
+                switch result {
+                case .success(let image):
+                    self.imagePool[element] = (url, image)
+                default:
+                    self.imagePool[element] = (url, self.errorImage)
+                }
+                self.delegate?.update(element: element)
             }
             activeRequests.insert(requestId)
         }
