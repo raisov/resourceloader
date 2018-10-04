@@ -19,72 +19,45 @@ protocol ImageLoaderDelegate: class {
 
 class ImageLoader {
 
-    weak var delegate: ImageLoaderDelegate? {
-        didSet {
-            loadTestData()
-        }
-    }
+    private unowned let delegate: ImageLoaderDelegate
 
     private lazy var errorImage = UIImage(named: "troubles.png")
 
-    private var urlList = [URL]()
     private var imagePool = [IndexPath : (url: URL, image: UIImage?)]()
     
     private let imageLoader: URLLoader<UIImage>
-    private let jsonLoader = URLLoader<JSONArray>()
 
-    // In my homework were written: "Use the following URL to upload data"
-    private let testURLString = "https://pastebin.com/raw/wgkJgazE"
-    private var testURLList = [URL]()
-    private var testURLLoadComplited = DispatchSemaphore(value: 0)
-    private func loadTestData() {
-        let jsonURL = URL(string: testURLString)!
-        jsonLoader.requestResource(from: jsonURL) {result, _ in
-            switch result {
-            case .success(let jsonItems):
-                jsonItems.value.compactMap{$0 as? [String : Any]}.forEach {
-                    guard let urls = $0["urls"] as? [String : String] else {return}
-                    if let urlString = urls["raw"], let url = URL(string: urlString) {
-                        self.urlList.append(url)
-                    }
-                }
-                self.urlList.shuffle()
-                self.delegate?.update()
-            default:
-                break
-            }
-        }
-    }
-
-    init() {
+    init(delegate: ImageLoaderDelegate) {
+        self.delegate = delegate
         imageLoader = URLLoader<UIImage>()
     }
 
+    var redirection = true
+
     func refresh() {
             imagePool.removeAll()
-            urlList.shuffle()
-            self.delegate?.update()
+            self.delegate.update()
     }
 
     func getImage(for element: IndexPath) -> UIImage? {
-        guard urlList.count != 0 else {return nil}
         var url: URL
         var image: UIImage?
         if let elementData = imagePool[element] {
             url = elementData.url
             image = elementData.image
         } else {
-            url = urlList[imagePool.count % urlList.count]
+            url = URL(string: "https://picsum.photos/480/320" +
+                (redirection ? "?random" : ""))!
             image = nil
             imagePool[element] = (url, image)
             imageLoader.requestResource(from: url) {result, _ in
-                 switch result {
+                switch result {
                 case .success(let image):
                     self.imagePool[element] = (url, image)
                 default:
                     self.imagePool[element] = (url, self.errorImage)
                 }
-                self.delegate?.update(element: element)
+                self.delegate.update(element: element)
             }
         }
         return image

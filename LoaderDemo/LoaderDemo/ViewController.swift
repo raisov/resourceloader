@@ -14,7 +14,7 @@ extension ViewController: ImageLoaderDelegate {
     func update() {
         mumberOfElements = 10
         collectionView.reloadData()
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(refresh))
+        navigationItem.leftBarButtonItem?.isEnabled = true
     }
 
     func update(element: IndexPath) {
@@ -27,12 +27,17 @@ class ViewController: UICollectionViewController {
 
     private var model: ImageLoader!
 
-    private var mumberOfElements = 0
-
     @objc func refresh() {
-        navigationItem.rightBarButtonItem = nil
         model.refresh()
     }
+
+    @IBOutlet weak var redirectionSwitch: UISwitch!
+    @IBAction func redirectionStatusChanged(_ sender: UISwitch) {
+        model.redirection = sender.isOn
+        model.refresh()
+    }
+
+    private var mumberOfElements = 0
 
     override func didReceiveMemoryWarning () {
         super.didReceiveMemoryWarning()
@@ -40,8 +45,10 @@ class ViewController: UICollectionViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        model = ImageLoader()
-        model.delegate = self
+        model = ImageLoader(delegate: self)
+        redirectionSwitch.setOn(model.redirection, animated: false)
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(refresh))
+        update()
      }
 
     /// Provides suitable cells size and equal cell spacing to different screen orientations.
