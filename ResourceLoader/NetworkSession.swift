@@ -12,6 +12,8 @@ protocol NetworkSessionDelegate: class {
     func completionHandler(request: Int, didReceive data: Data, with error: Error?)
 }
 
+/// This class actually performs the entire load,
+/// but delegates loaded data processing.
 class NetworkSession: NSObject {
 
     private lazy var session: URLSession = {
@@ -28,9 +30,16 @@ class NetworkSession: NSObject {
     /// URLSessionTask related data.
     private struct TaskData {
         typealias Element = (identifier: Int, request: URLRequest)
-        private var requests: [Element]
+
+        /// Buffer used to collect received data.
         var data = Data()
+
+        /// All requests for the same URL, processed simultaneously.
+        private var requests: [Element]
+
         var attachedRequests: [Int] {return requests.map{$0.identifier}}
+
+        /// May be true when all relevant requests canceled.
         var isEmpty: Bool {return attachedRequests.isEmpty}
 
         init(_ request: URLRequest, identifier: Int) {
@@ -55,6 +64,7 @@ class NetworkSession: NSObject {
             }?.request
         }
 
+        /// Remove and return all but first requests.
         mutating func removeTail() -> ArraySlice<Element> {
             guard !requests.isEmpty else {return []}
             let tail = requests.suffix(requests.count - 1)
@@ -71,10 +81,16 @@ class NetworkSession: NSObject {
 
     unowned var delegate: NetworkSessionDelegate
 
+    /// This class is useless without delegate,
+    /// so it is assumed that the creating object set self as a delegate.
     init(delegate: NetworkSessionDelegate) {
         self.delegate = delegate
     }
 
+    /// Create request to load from URL. If this URL currently processed,
+    /// request attached to existing task, else new task created.
+    /// - Parameter url: loaded resource URL.
+    /// - Returns: unique request identifier.
     func makeRequest(url: URL) -> Int {
         let request = URLRequest(url: url)
         var requestId = 0
@@ -83,10 +99,12 @@ class NetworkSession: NSObject {
             requestId = NetworkSession.requestNumber
             let tasks = self.taskPool.keys
             if let task = (tasks.first{$0.currentRequest?.url == url}) {
+                // currently loaded.
                 var taskData = self.taskPool[task]!
                 taskData.add(request, identifier: requestId)
                 self.taskPool[task] = taskData
             } else {
+                // new load is initiated.
                 let task = self.session.dataTask(with: request)
                 self.taskPool[task] = TaskData(request, identifier: requestId)
                 task.resume()
@@ -101,6 +119,7 @@ URLSessionDelegate, URLSessionTaskDelegate, URLSessionDataDelegate  {
 
     // MARK: - URLSessionDataDelegate method.
 
+    /// Part of data received.
     func urlSession(_ session: URLSession,
                     dataTask task: URLSessionDataTask,
                     didReceive data: Data) {
@@ -113,17 +132,20 @@ URLSessionDelegate, URLSessionTaskDelegate, URLSessionDataDelegate  {
 
     // MARK: - URLSessionTaskDelegate methods.
 
+    /// Response headers received.
     func urlSession(_ session: URLSession,
                     dataTask task: URLSessionDataTask, didReceive response: URLResponse,
                     completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
         if let response = response as? HTTPURLResponse,
             (400...599).contains(response.statusCode) {
+            // HTTP error codes
             completionHandler(.cancel)
             return
         }
         completionHandler(.allow)
     }
 
+    /// Load completed.
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         poolQueue.async {
             guard let taskData = self.taskPool.removeValue(forKey: task) else {
@@ -136,6 +158,7 @@ URLSessionDelegate, URLSessionTaskDelegate, URLSessionDataDelegate  {
         }
     }
 
+    /// URL Redirection.
     func urlSession(_ session: URLSession,
                     task: URLSessionTask,
                     willPerformHTTPRedirection response: HTTPURLResponse,
@@ -144,9 +167,11 @@ URLSessionDelegate, URLSessionTaskDelegate, URLSessionDataDelegate  {
         assert((300...399).contains(response.statusCode))
         poolQueue.async {
             if var taskData = self.taskPool.removeValue(forKey: task) {
+                // Remove all additional requests for original URL
                 let tail = taskData.removeTail()
                 self.taskPool[task] = taskData
                 if tail.count != 0 {
+                    // and start new task for them.
                     let newTask = self.session.dataTask(with: task.originalRequest!)
                     self.taskPool[newTask] = TaskData(tail)
                     newTask.resume()
