@@ -34,6 +34,7 @@
 
 /* Begin PBXFileReference section */
 		E02BBEB821665B67008CF01E /* cancelled.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cancelled.png; sourceTree = "<group>"; };
+		E02BBEBB21667A22008CF01E /* ScreenShot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ScreenShot.png; sourceTree = "<group>"; };
 		E05F299C215FC34100CC47FF /* LoaderDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LoaderDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E05F299F215FC34100CC47FF /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E05F29A1215FC34100CC47FF /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -45,7 +46,6 @@
 		E05F29BF215FEEAE00CC47FF /* ImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageLoader.swift; sourceTree = "<group>"; };
 		E05F29CA2160D5D500CC47FF /* ResourceLoader.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ResourceLoader.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E05F29CC216193BD00CC47FF /* troubles.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = troubles.png; sourceTree = "<group>"; };
-		E05F29D02162A4FB00CC47FF /* ScreenShot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ScreenShot.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,7 +63,7 @@
 		E05F2993215FC34100CC47FF = {
 			isa = PBXGroup;
 			children = (
-				E05F29D02162A4FB00CC47FF /* ScreenShot.png */,
+				E02BBEBB21667A22008CF01E /* ScreenShot.png */,
 				E05F299E215FC34100CC47FF /* LoaderDemo */,
 				E05F299D215FC34100CC47FF /* Products */,
 				E05F29C92160D5D500CC47FF /* Frameworks */,
