@@ -27,25 +27,39 @@ class NetworkSession: NSObject {
 
     /// URLSessionTask related data.
     private struct TaskData {
-        private var requests: [(identifier: Int, request: URLRequest)]
+        typealias Element = (identifier: Int, request: URLRequest)
+        private var requests: [Element]
         var data = Data()
         var attachedRequests: [Int] {return requests.map{$0.identifier}}
         var isEmpty: Bool {return attachedRequests.isEmpty}
 
-        init(with request: URLRequest, identifier: Int) {
+        init(_ request: URLRequest, identifier: Int) {
             requests = [(identifier, request)]
         }
 
-        mutating func add(request: URLRequest, identifier: Int) {
+        init(_ requests:  ArraySlice<Element>) {
+            self.requests = Array(requests)
+        }
+
+        mutating func add(_ request: URLRequest, identifier: Int) {
             requests.append((identifier, request))
         }
 
-        mutating func removeRequest(with identifier: Int) {
-            requests.firstIndex{$0.identifier == identifier}.map{_ = requests.remove(at: $0)}
+        mutating func add(contentsOf tail: ArraySlice<Element>) {
+            requests.append(contentsOf: tail)
         }
 
-        mutating func removeTail() {
-            if !requests.isEmpty {requests = [requests[0]]}
+        mutating func removeRequest(with identifier: Int) -> URLRequest? {
+            return requests.firstIndex {
+                $0.identifier == identifier}.map{self.requests.remove(at: $0)
+            }?.request
+        }
+
+        mutating func removeTail() -> ArraySlice<Element> {
+            guard !requests.isEmpty else {return []}
+            let tail = requests.suffix(requests.count - 1)
+            requests = [requests[0]]
+            return tail
         }
     }
 
@@ -70,11 +84,11 @@ class NetworkSession: NSObject {
             let tasks = self.taskPool.keys
             if let task = (tasks.first{$0.currentRequest?.url == url}) {
                 var taskData = self.taskPool[task]!
-                taskData.add(request: request, identifier: requestId)
+                taskData.add(request, identifier: requestId)
                 self.taskPool[task] = taskData
             } else {
                 let task = self.session.dataTask(with: request)
-                self.taskPool[task] = TaskData(with: request, identifier: requestId)
+                self.taskPool[task] = TaskData(request, identifier: requestId)
                 task.resume()
             }
         }
@@ -122,6 +136,30 @@ URLSessionDelegate, URLSessionTaskDelegate, URLSessionDataDelegate  {
                 self.delegate.completionHandler(request: $0, didReceive: data, with: error)
             }
         }
+    }
+
+    func urlSession(_ session: URLSession,
+                    task: URLSessionTask,
+                    willPerformHTTPRedirection response: HTTPURLResponse,
+                    newRequest request: URLRequest,
+                    completionHandler: @escaping (URLRequest?) -> Void) {
+        assert((300...399).contains(response.statusCode))
+        poolQueue.async {
+            if var taskData = self.taskPool.removeValue(forKey: task) {
+                let tail = taskData.removeTail()
+                self.taskPool[task] = taskData
+                if tail.count != 0 {
+                    if var existingTaskData = self.taskPool.removeValue(forKey: task) {
+                        existingTaskData.add(contentsOf: tail)
+                    } else {
+                        let newTask = self.session.dataTask(with: task.originalRequest!)
+                        self.taskPool[newTask] = TaskData(tail)
+                        newTask.resume()
+                    }
+                }
+            }
+        }
+        completionHandler(request)
     }
 }
 
