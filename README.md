@@ -83,6 +83,7 @@ The `URLLoader` also contains`cancelRequest` method. To cancel the above request
 ```
 imageLoader.cancelRequest(requestId)
 ```
+For cancel all currently processing requests use `cancelAll()`.
 
 The following example demonstrates loadding the list of user names from JSON.
 
@@ -123,7 +124,8 @@ Another way is to include the whole ResourceLoader.xcodeproj in your workspace. 
 
 ## Demo Application
 
-__LoaderDemo__ is an application that loads and displays randomly selected sets of images  listed in [JSON](http://pastebin.com/raw/wgkJgazE). When a user presses _Refresh_ button the next random images set is loaded.The pplication may run on iPhone or iPad with iOS version 11.0 or above.
+__LoaderDemo__ is an application that loads and displays randomly selected sets of images  listed in [JSON](http://pastebin.com/raw/wgkJgazE). When a user presses _Refresh_ button the next random images set is loaded. Switch in Navigation bar allows choose between URL with and without redirection.
+The application may run on iPhone or iPad with iOS version 11.0 or above.
 The `URLLoader` object is used in this application to load JSON with list of image URLs and to asynchronously load these images.
 
 ![Screen shot](./LoaderDemo/ScreenShot.png)
