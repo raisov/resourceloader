@@ -16,7 +16,6 @@ protocol ImageLoaderDelegate: class {
     func update(element: IndexPath)
 }
 
-
 class ImageLoader {
 
     private unowned let delegate: ImageLoaderDelegate
