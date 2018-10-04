@@ -124,7 +124,9 @@ public class URLLoader<ResourceType: CreatableFromData> : NetworkSessionDelegate
 
     /// Cancel all currently processed requests.
     public func cancelAll() {
-        requestPool.keys.forEach(cancelRequest)
+        poolQueue.sync {
+            requestPool.keys.forEach(session.cancelRequest)
+        }
     }
 
     // MARK: - NetworkSessionDelegate method.
