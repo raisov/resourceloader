@@ -106,7 +106,6 @@ URLSessionDelegate, URLSessionTaskDelegate, URLSessionDataDelegate  {
                     didReceive data: Data) {
             poolQueue.async {
                 var taskData = self.taskPool[task]
-                assert(taskData != nil)
                 taskData?.data.append(data)
                 self.taskPool[task] = taskData
             }
@@ -117,7 +116,6 @@ URLSessionDelegate, URLSessionTaskDelegate, URLSessionDataDelegate  {
     func urlSession(_ session: URLSession,
                     dataTask task: URLSessionDataTask, didReceive response: URLResponse,
                     completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
-        assert(taskPool[task] != nil)
         if let response = response as? HTTPURLResponse,
             (400...599).contains(response.statusCode) {
             completionHandler(.cancel)
@@ -149,13 +147,9 @@ URLSessionDelegate, URLSessionTaskDelegate, URLSessionDataDelegate  {
                 let tail = taskData.removeTail()
                 self.taskPool[task] = taskData
                 if tail.count != 0 {
-                    if var existingTaskData = self.taskPool.removeValue(forKey: task) {
-                        existingTaskData.add(contentsOf: tail)
-                    } else {
-                        let newTask = self.session.dataTask(with: task.originalRequest!)
-                        self.taskPool[newTask] = TaskData(tail)
-                        newTask.resume()
-                    }
+                    let newTask = self.session.dataTask(with: task.originalRequest!)
+                    self.taskPool[newTask] = TaskData(tail)
+                    newTask.resume()
                 }
             }
         }
