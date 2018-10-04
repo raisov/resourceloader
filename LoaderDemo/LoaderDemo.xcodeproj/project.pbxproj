@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E02BBEB921665B67008CF01E /* cancelled.png in Resources */ = {isa = PBXBuildFile; fileRef = E02BBEB821665B67008CF01E /* cancelled.png */; };
 		E05F29A0215FC34100CC47FF /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E05F299F215FC34100CC47FF /* AppDelegate.swift */; };
 		E05F29A2215FC34100CC47FF /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E05F29A1215FC34100CC47FF /* ViewController.swift */; };
 		E05F29A5215FC34100CC47FF /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E05F29A3215FC34100CC47FF /* Main.storyboard */; };
@@ -32,6 +33,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		E02BBEB821665B67008CF01E /* cancelled.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cancelled.png; sourceTree = "<group>"; };
 		E05F299C215FC34100CC47FF /* LoaderDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LoaderDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E05F299F215FC34100CC47FF /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E05F29A1215FC34100CC47FF /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -80,6 +82,7 @@
 			isa = PBXGroup;
 			children = (
 				E05F29CC216193BD00CC47FF /* troubles.png */,
+				E02BBEB821665B67008CF01E /* cancelled.png */,
 				E05F299F215FC34100CC47FF /* AppDelegate.swift */,
 				E05F29A1215FC34100CC47FF /* ViewController.swift */,
 				E05F29BF215FEEAE00CC47FF /* ImageLoader.swift */,
@@ -159,6 +162,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E02BBEB921665B67008CF01E /* cancelled.png in Resources */,
 				E05F29AA215FC34100CC47FF /* LaunchScreen.storyboard in Resources */,
 				E05F29A7215FC34100CC47FF /* Assets.xcassets in Resources */,
 				E05F29A5215FC34100CC47FF /* Main.storyboard in Resources */,

@@ -21,6 +21,7 @@ class ImageLoader {
     private unowned let delegate: ImageLoaderDelegate
 
     private lazy var errorImage = UIImage(named: "troubles.png")
+    private lazy var cancelImage = UIImage(named: "cancelled.png")
 
     private var imagePool = [IndexPath : (url: URL, image: UIImage?)]()
     
@@ -34,8 +35,9 @@ class ImageLoader {
     var redirection = true
 
     func refresh() {
-            imagePool.removeAll()
-            self.delegate.update()
+        imagePool.removeAll()
+        imageLoader.cancelAll()
+        self.delegate.update()
     }
 
     func getImage(for element: IndexPath) -> UIImage? {
@@ -53,6 +55,13 @@ class ImageLoader {
                 switch result {
                 case .success(let image):
                     self.imagePool[element] = (url, image)
+                case .error(let error):
+                    let nserror = error as NSError
+                    if nserror.domain == NSURLErrorDomain && nserror.code == NSURLErrorCancelled {
+                        self.imagePool[element] = (url, self.cancelImage)
+                    } else {
+                        self.imagePool[element] = (url, self.errorImage)
+                    }
                 default:
                     self.imagePool[element] = (url, self.errorImage)
                 }

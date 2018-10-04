@@ -82,6 +82,12 @@ public class URLLoader<ResourceType: CreatableFromData> : NetworkSessionDelegate
     public init (callbackQueue: DispatchQueue = DispatchQueue.main) {
         self.callbackQueue = callbackQueue
     }
+
+    /// All processed request must be canceled
+    /// because callbacks will disppear now.
+    deinit {
+        cancelAll()
+    }
     
     /// Initiate asynchronous loading of the resource.
     /// - Parameters:
@@ -90,8 +96,7 @@ public class URLLoader<ResourceType: CreatableFromData> : NetworkSessionDelegate
     ///                 when request is completed.
     ///     - acceptor: The completion handler closure called
     ///                 when the load succeeds or fails.
-    /// - Returns: descriptor uniquely identifying created request
-    ///            in current URLLoader instance scope.
+    /// - Returns: unique identifier for created request.
     @discardableResult
     public func requestResource(from url: URL,
                                 userData: Any? = nil,
@@ -109,21 +114,22 @@ public class URLLoader<ResourceType: CreatableFromData> : NetworkSessionDelegate
     /// Cancel resource loading.
     /// When  specified loading query already completed or canceled,
     /// subsequent calls to cancelRequest are ignored.
-    /// - Parameter request: canceling request descriptor
-    ///                    returned from the `requestResource` method corresponding call.
-    public func cancelRequest(_ request: URLRequest) {
-        //poolQueue.sync {
-        //            guard let (task, queries) = self.taskPool.removeValue(forKey: request.url) else {return}
-        //            let updatedQueries = queries.filter {$0.id != request.id}
-        //            if updatedQueries.isEmpty {
-        //                if .canceling != task.state && .completed != task.state {
-        //                    task.cancel()
-        //                }
-        //            } else {
-        //                self.requestPool[request.url] = (task: task, queries: updatedQueries)
-        //            }
+    /// - Parameter request: canceling request identifier.returned from the
+    ///                    `requestResource` method corresponding call.
+    public func cancelRequest(_ identifier: Int) {
+        poolQueue.sync {
+            session.cancelRequest(identifier)
+        }
     }
-    
+
+    /// Cancel all currently processed requests.
+    public func cancelAll() {
+        requestPool.keys.forEach(cancelRequest)
+    }
+
+    // MARK: - NetworkSessionDelegate method.
+
+    ///
     func completionHandler(request: Int, didReceive data: Data, with error: Error?) {
         poolQueue.async {
             guard let requestData = self.requestPool.removeValue(forKey: request) else {

@@ -112,6 +112,22 @@ class NetworkSession: NSObject {
         }
         return requestId
     }
+
+    func cancelRequest(_ identifier: Int) {
+        poolQueue.sync {
+            for (task, taskData) in taskPool {
+                var newData = taskData
+                if newData.removeRequest(with: identifier) != nil {
+                    if newData.isEmpty {
+                        task.cancel()
+                    } else {
+                        taskPool[task] = newData
+                    }
+                    break
+                }
+            }
+        }
+    }
 }
 
 extension NetworkSession:
