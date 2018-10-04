@@ -8,33 +8,6 @@
 
 import Foundation
 
-/// Descriptor type for the specific request to load.
-public struct RequestDescriptor {
-    public let url: URL
-    fileprivate let id: UInt
-
-    /// Create resource request descriptor.
-    /// - Parameters:
-    ///     - id: number that uniquely identifying resource request.
-    ///           in scope of the URLLoader instance.
-    ///     - url: The URL related to the resource request.
-    init(id: UInt, url: URL) {
-        self.id = id
-        self.url = url
-    }
-}
-
-extension RequestDescriptor: Hashable {
-
-    public var hashValue: Int {
-        return self.id.hashValue
-    }
-
-    public static func == (lhs: RequestDescriptor, rhs: RequestDescriptor) -> Bool {
-        return lhs.id == rhs.id
-    }
-}
-
 /// `URLLoader` is an object asynchronously load resources identified by URL.
 /// The result of the request is represented by the type
 /// conforming to `CreatableFromData` protocol.
@@ -47,13 +20,14 @@ extension RequestDescriptor: Hashable {
 /// To representat JSON resources the types `JSONObject` and `JSONArray`
 /// are defined having `value` property of type
 /// `[String : Any] and [Any] respectively.
-public class URLLoader<ResourceType: CreatableFromData> {
-    /// Result of request
+public class URLLoader<ResourceType: CreatableFromData> : NetworkSessionDelegate {
+    
+    /// Result of load request
     public  enum Result {
         case success(ResourceType)
         case empty
         case error(Error)
-
+        
         init(data: Data?, error: Error? = nil) {
             if let error = error {
                 self = Result.error(error)
@@ -62,32 +36,45 @@ public class URLLoader<ResourceType: CreatableFromData> {
             } else {
                 self = Result.empty
             }
-
         }
     }
-
+    
     /// The type of the closure called to process loaded resources.
     /// - Parameters:
     ///     - result: Loaded resource or `nil` when the error occured.
-    ///     - requestId: completed request descriptor.
+    ///     - request: completed request descriptor.
     ///     - arbitrary user data provided when the corresponding request was made.
-    public typealias AcceptorType = (_ result: Result, _ requestId: RequestDescriptor, _ userData: Any?) -> ()
-
-    /// Type representing request reference.
-    private typealias RequestPoolElementType = (id: UInt, acceptor: AcceptorType)
-    /// Data structure containing information about requests being processed.
-    private var requestPool = [URL : (task: URLSessionTask, queries: [RequestPoolElementType])]()
-
-    /// Dispatch queue used to protect consistency of
-    /// internal data structures in multithreaded environment.
-    private let poolQueue = DispatchQueue(label: "resourceloader.data", qos: .utility)
-
-    /// Variable used to generate request id.
-    private var requestCounter = UInt(0)
-
+    public typealias AcceptorType = (_ result: Result,
+        _ userData: Any?) -> ()
+    
+    lazy var session = NetworkSession(delegate: self)
+    
     /// Dispatch queue where callback acceptors will be executed.
     private let callbackQueue: DispatchQueue
-
+    
+    /// Dispatch queue used to protect consistency of
+    /// internal data structures in multithreaded environment.
+    private let poolQueue = DispatchQueue(label: "network_session.data", qos: .utility)
+    
+    /// Request related data.
+    private struct RequestData {
+        let acceptor: AcceptorType
+        let userData: Any?
+        
+        init(acceptor: @escaping AcceptorType, userData: Any?) {
+            self.acceptor = acceptor
+            self.userData = userData
+        }
+        
+        func complete(with result: Result, using queue: DispatchQueue) {
+            queue.async {
+                self.acceptor(result, self.userData)
+            }
+        }
+    }
+    
+    private var requestPool = [Int : RequestData]()
+    
     /// Creates URLLoader object.
     /// - Parameter callbackQueue: Dispatch queue where callback acceptors
     ///                            for loaded resources will be executed.
@@ -95,7 +82,7 @@ public class URLLoader<ResourceType: CreatableFromData> {
     public init (callbackQueue: DispatchQueue = DispatchQueue.main) {
         self.callbackQueue = callbackQueue
     }
-
+    
     /// Initiate asynchronous loading of the resource.
     /// - Parameters:
     ///     - url: loaded resource URL.
@@ -107,54 +94,44 @@ public class URLLoader<ResourceType: CreatableFromData> {
     ///            in current URLLoader instance scope.
     @discardableResult
     public func requestResource(from url: URL,
-                               userData: Any? = nil,
-                               for acceptor: @escaping AcceptorType)
-        -> RequestDescriptor {
-            var requestId = requestCounter
+                                userData: Any? = nil,
+                                for acceptor: @escaping AcceptorType)
+        -> Int {
+            var requestId = 0
             poolQueue.sync {
-                self.requestCounter = self.requestCounter &+ 1
-                requestId = requestCounter
-
-                if let (task, queries) = self.requestPool[url] {
-                    requestPool[url] = (task: task, queries: queries + [(requestId, acceptor)])
-                } else {
-                    let task = URLSession.shared.dataTask(with: url) {
-                        data, response, error in
-                        let result = Result(data: data, error: error)
-                        self.poolQueue.async {
-                            if let (task, queries) = self.requestPool.removeValue(forKey: url) {
-                                assert(task.state == .completed)
-                                self.callbackQueue.async {
-                                    queries.forEach {
-                                        $0.acceptor(result, RequestDescriptor(id: requestId, url: url), userData)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    self.requestPool[url] = (task: task, queries: [(id: requestId, acceptor: acceptor)])
-                    task.resume()
-                }
+                requestId = session.makeRequest(url: url)
+                requestPool[requestId] = RequestData(acceptor: acceptor,
+                                                   userData: userData)
             }
-        return RequestDescriptor(id: requestId, url: url)
+            return requestId
     }
-
+    
     /// Cancel resource loading.
     /// When  specified loading query already completed or canceled,
     /// subsequent calls to cancelRequest are ignored.
     /// - Parameter request: canceling request descriptor
     ///                    returned from the `requestResource` method corresponding call.
-    public func cancelRequest(_ request: RequestDescriptor) {
-        poolQueue.sync {
-            guard let (task, queries) = self.requestPool.removeValue(forKey: request.url) else {return}
-            let updatedQueries = queries.filter {$0.id != request.id}
-            if updatedQueries.isEmpty {
-                if .canceling != task.state && .completed != task.state {
-                    task.cancel()
-                }
-            } else {
-                self.requestPool[request.url] = (task: task, queries: updatedQueries)
+    public func cancelRequest(_ request: URLRequest) {
+        //poolQueue.sync {
+        //            guard let (task, queries) = self.taskPool.removeValue(forKey: request.url) else {return}
+        //            let updatedQueries = queries.filter {$0.id != request.id}
+        //            if updatedQueries.isEmpty {
+        //                if .canceling != task.state && .completed != task.state {
+        //                    task.cancel()
+        //                }
+        //            } else {
+        //                self.requestPool[request.url] = (task: task, queries: updatedQueries)
+        //            }
+    }
+    
+    func completionHandler(request: Int, didReceive data: Data, with error: Error?) {
+        poolQueue.async {
+            guard let requestData = self.requestPool.removeValue(forKey: request) else {
+                return
             }
+            let result = Result(data: data, error: error)
+            requestData.complete(with: result, using: self.callbackQueue)
         }
     }
 }
+

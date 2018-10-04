@@ -29,18 +29,17 @@ class ImageLoader {
 
     private var urlList = [URL]()
     private var imagePool = [IndexPath : (url: URL, image: UIImage?)]()
-    private var activeRequests = Set<RequestDescriptor>()
-
+    
     private let imageLoader: URLLoader<UIImage>
+    private let jsonLoader = URLLoader<JSONArray>()
 
     // In my homework were written: "Use the following URL to upload data"
     private let testURLString = "https://pastebin.com/raw/wgkJgazE"
     private var testURLList = [URL]()
     private var testURLLoadComplited = DispatchSemaphore(value: 0)
     private func loadTestData() {
-        let jsonLoader = URLLoader<JSONArray>()
         let jsonURL = URL(string: testURLString)!
-        jsonLoader.requestResource(from: jsonURL) {result, _, _ in
+        jsonLoader.requestResource(from: jsonURL) {result, _ in
             switch result {
             case .success(let jsonItems):
                 jsonItems.value.compactMap{$0 as? [String : Any]}.forEach {
@@ -56,15 +55,12 @@ class ImageLoader {
             }
         }
     }
-//
 
     init() {
         imageLoader = URLLoader<UIImage>()
     }
 
     func refresh() {
-            activeRequests.forEach{imageLoader.cancelRequest($0)}
-            activeRequests.removeAll()
             imagePool.removeAll()
             urlList.shuffle()
             self.delegate?.update()
@@ -81,9 +77,8 @@ class ImageLoader {
             url = urlList[imagePool.count % urlList.count]
             image = nil
             imagePool[element] = (url, image)
-            let requestId = imageLoader.requestResource(from: url) {result, id, _ in
-                self.activeRequests.remove(id)
-                switch result {
+            imageLoader.requestResource(from: url) {result, _ in
+                 switch result {
                 case .success(let image):
                     self.imagePool[element] = (url, image)
                 default:
@@ -91,7 +86,6 @@ class ImageLoader {
                 }
                 self.delegate?.update(element: element)
             }
-            activeRequests.insert(requestId)
         }
         return image
     }

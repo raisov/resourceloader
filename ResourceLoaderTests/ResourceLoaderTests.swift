@@ -33,6 +33,13 @@ class ResourceLoaderTests: XCTestCase {
         super.tearDown()
     }
 
+//    func test() {
+//        let completion = DispatchSemaphore(value: 0)
+//        let t = tttt<Int>()
+//        t.startLoad()
+//        completion.wait(timeout: DispatchTime.now() + .seconds(10))
+//    }
+
     func testJPG() {
         let loader = URLLoader<UIImage>(callbackQueue: DispatchQueue.global())
         let bundle = Bundle(for: type(of: self))
@@ -47,9 +54,8 @@ class ResourceLoaderTests: XCTestCase {
         let imageData = archive(image)
 
         let completion = DispatchSemaphore(value: 0)
-        var requestId = RequestDescriptor(id: 0, url: url)
-        requestId = loader.requestResource(from: url, userData: imageData) {resource, id, userData in
-            XCTAssertEqual(id, requestId)
+
+        loader.requestResource(from: url, userData: imageData) {resource, userData             in
             XCTAssertNotNil(userData as? Data)
             switch resource {
             case .success(let received):
@@ -65,7 +71,7 @@ class ResourceLoaderTests: XCTestCase {
             }
             completion.signal()
         }
-        completion.wait() // while completion handler has been finished
+        XCTAssertEqual(completion.wait(timeout: DispatchTime.now() + .seconds(1)), .success)
     }
 
     func testPNG() {
@@ -82,7 +88,7 @@ class ResourceLoaderTests: XCTestCase {
         let imageData = archive(image)
 
         let completion = DispatchSemaphore(value: 0)
-        loader.requestResource(from: url) {resource, _, _ in
+        loader.requestResource(from: url) {resource, _ in
             switch resource {
             case .success(let received):
                 XCTAssertEqual(received.size, image.size)
@@ -94,7 +100,8 @@ class ResourceLoaderTests: XCTestCase {
             }
             completion.signal()
         }
-        completion.wait() // while completion handler has been finished
+        XCTAssertEqual(completion.wait(timeout: DispatchTime.now() + .seconds(1)), .success)
+
     }
 
     func testXML() {
@@ -135,7 +142,7 @@ class ResourceLoaderTests: XCTestCase {
         let xmlContent = parserDelegate.value
 
         let completion = DispatchSemaphore(value: 0)
-        loader.requestResource(from: url) {resource, _, _  in
+        loader.requestResource(from: url) {resource, _  in
             switch resource {
             case .success(let received):
                 let parserDelegate = TestXMLParser()
@@ -149,7 +156,7 @@ class ResourceLoaderTests: XCTestCase {
             }
             completion.signal()
         }
-        completion.wait() // while completion handler has been finished
+        XCTAssertEqual(completion.wait(timeout: DispatchTime.now() + .seconds(1)), .success)
     }
 
     func testPDF() {
@@ -162,7 +169,7 @@ class ResourceLoaderTests: XCTestCase {
         let url = bundle.url(forResource: name, withExtension: ext)!
 
         let completion = DispatchSemaphore(value: 0)
-        loader.requestResource(from: url) {resource, _, _  in
+        loader.requestResource(from: url) {resource, _  in
             switch resource {
             case .success(let received):
                 let selections = received.findString("Swift")
@@ -174,7 +181,7 @@ class ResourceLoaderTests: XCTestCase {
             }
             completion.signal()
         }
-        completion.wait() // while completion handler has been finished
+        XCTAssertEqual(completion.wait(timeout: DispatchTime.now() + .seconds(1)), .success)
     }
 
     func testJSONObject() {
@@ -187,7 +194,7 @@ class ResourceLoaderTests: XCTestCase {
         let url = bundle.url(forResource: name, withExtension: ext)!
 
         let completion = DispatchSemaphore(value: 0)
-        loader.requestResource(from: url) {resource, _, _  in
+        loader.requestResource(from: url) {resource, _  in
             switch resource {
             case .success(let received):
                 XCTAssertNotNil(received.value["number"] as? Int)
@@ -201,7 +208,7 @@ class ResourceLoaderTests: XCTestCase {
             }
             completion.signal()
         }
-        completion.wait() // while completion handler has been finished
+        XCTAssertEqual(completion.wait(timeout: DispatchTime.now() + .seconds(1)), .success)
     }
 
     func testJSONArray() {
@@ -214,7 +221,7 @@ class ResourceLoaderTests: XCTestCase {
         let url = bundle.url(forResource: name, withExtension: ext)!
 
         let completion = DispatchSemaphore(value: 0)
-        loader.requestResource(from: url) {resource, _, _  in
+        loader.requestResource(from: url) {resource, _  in
             switch resource {
             case .success(let received):
                 XCTAssertEqual(received.value.count, 12)
@@ -225,7 +232,7 @@ class ResourceLoaderTests: XCTestCase {
             }
             completion.signal()
         }
-        completion.wait() // while completion handler has been finished
+        XCTAssertEqual(completion.wait(timeout: DispatchTime.now() + .seconds(1)), .success)
     }
 
     func testPerformanceExample() {
