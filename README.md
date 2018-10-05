@@ -1,6 +1,6 @@
 #  ResourceLoader
 
-__Warning: Xcode 10 required! __
+__Warning: Xcode 10 required!__
 
 __ResourceLoader__ is a Swift library intended to asynchronously load resources identified by URL.
 
